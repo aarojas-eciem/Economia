@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPP — Cátedra Economía · IICG UCN 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #082959;
+  --navy-light: #0d3a7a;
+  --navy-mid: #1a4e9e;
+  --gold: #c8a850;
+  --gold-light: #e8c96a;
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --border: #e0e4ef;
+  --text: #111827;
+  --muted: #6b7280;
+  --green: #16a34a;
+  --yellow: #d97706;
+  --red: #dc2626;
+  --radius: 14px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--navy);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content:'';
+  position:absolute; top:-80px; right:-60px;
+  width:300px; height:300px; border-radius:50%;
+  background:rgba(200,168,80,.1);
+}
+.header-inner {
+  position: relative; z-index:1;
+  max-width: 1120px; margin:0 auto;
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+}
+.header-text {
+  flex: 1;
+}
+.header-tag {
+  display: inline-block;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.8px; text-transform: uppercase;
+  background: var(--gold); color: var(--navy);
+  padding: 3px 10px; border-radius: 4px; margin-bottom: 6px;
+}
+.header-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 800; line-height: 1.25;
+  color: white;
+}
+.header-sub {
+  font-size: 11.5px; color: rgba(255,255,255,.65);
+  margin-top: 4px; font-weight: 400;
+}
+.header-sub strong { color: var(--gold); }
+
+/* ── TABS ── */
+.tab-nav {
+  background: rgba(0,0,0,.25);
+  display: flex; overflow-x: auto;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  border: none; background: transparent;
+  color: rgba(255,255,255,.55);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all .18s; white-space: nowrap;
+  letter-spacing: .3px;
+}
+.tab-btn:hover { color: rgba(255,255,255,.85); }
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(200,168,80,.09); }
+
+/* ── MAIN ── */
+.main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 40px; }
+
+/* ── PANELS ── */
+.tab-panel { display: none; animation: fadeUp .22s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+/* ── GRID ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media(max-width:700px){ .g2 { grid-template-columns: 1fr; } }
+
+/* ── CARD ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 1px 6px rgba(8,41,89,.06);
+}
+.card-hd {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-hd .ico {
+  width: 28px; height: 28px;
+  background: var(--navy); color: white;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+
+/* ── CANVAS ── */
+.cv-wrap {
+  position: relative; border-radius: 10px;
+  overflow: hidden; background: #fafaf8;
+  border: 1px solid var(--border); cursor: crosshair;
+}
+canvas { display: block; width: 100%; height: auto; }
+
+/* ── BADGE ── */
+.zbadge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 100px;
+  font-size: 12.5px; font-weight: 700;
+  transition: all .25s;
+}
+.zbadge.eficiente  { background: #dcfce7; color: #166534; }
+.zbadge.ineficiente{ background: #fef9c3; color: #92400e; }
+.zbadge.inalcanzable{ background: #fee2e2; color: #991b1b; }
+
+/* ── INFO GRID ── */
+.ig { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.ig-item { background: var(--bg); border-radius: 9px; padding: 10px 14px; }
+.ig-item .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; }
+.ig-item .val { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: var(--navy); margin-top: 1px; }
+
+/* ── EXPLAIN BOX ── */
+.explain {
+  margin-top: 12px; font-size: 13px; line-height: 1.65;
+  padding: 11px 14px; border-radius: 9px;
+  background: #f0f4ff; color: var(--navy); border-left: 3px solid var(--navy);
+}
+
+/* ── SLIDER ── */
+.sl-wrap { margin: 12px 0; }
+.sl-wrap label { font-size: 13px; font-weight: 600; color: var(--navy); display: block; margin-bottom: 6px; }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 6px;
+  border-radius: 3px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, var(--navy) 0%, var(--navy) var(--pct,50%), #dde3f4 var(--pct,50%), #dde3f4 100%);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--gold); border: 3px solid var(--navy); cursor: pointer; transition: transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
+/* ── CO DISPLAY ── */
+.co-box {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  color: white; border-radius: 11px; padding: 18px 20px; margin: 14px 0; text-align: center;
+}
+.co-box .co-lbl { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.co-box .co-val { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: var(--gold); margin: 4px 0; }
+.co-box .co-desc { font-size: 13px; color: rgba(255,255,255,.8); }
+
+/* ── SHIFT CARDS ── */
+.sg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+@media(max-width:480px){ .sg { grid-template-columns: 1fr; } }
+.sc {
+  border-radius: 10px; padding: 13px;
+  border: 2px solid var(--border); cursor: pointer;
+  transition: all .18s; background: white; text-align: left;
+}
+.sc:hover { border-color: var(--navy); background: #f0f4ff; }
+.sc.selected { border-color: var(--gold); background: #fffbf0; }
+.sc .si { font-size: 22px; margin-bottom: 5px; }
+.sc .st { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; color: var(--navy); }
+.sc .sd { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── TABLE ── */
+.ftbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+.ftbl th { background: var(--navy); color: white; padding: 9px 12px; font-weight: 600; text-align: center; font-family: 'Outfit', sans-serif; }
+.ftbl td { padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); }
+.ftbl tr:hover td { background: #f0f4ff; }
+.ftbl tr.active-row td { background: #fef9c3; font-weight: 700; }
+
+/* ── CONCEPT CARDS ── */
+.cc-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 14px; }
+@media(max-width:560px){ .cc-row { grid-template-columns: 1fr; } }
+.cc { border-radius: 10px; padding: 14px; border-left: 4px solid transparent; }
+.cc.green { background:#f0fdf4; border-color:var(--green); }
+.cc.yellow { background:#fffbeb; border-color:var(--yellow); }
+.cc.red { background:#fef2f2; border-color:var(--red); }
+.cc h4 { font-family:'Outfit',sans-serif; font-size:12.5px; font-weight:700; margin-bottom:5px; }
+.cc.green h4 { color:#166534; }
+.cc.yellow h4 { color:#92400e; }
+.cc.red h4 { color:#991b1b; }
+.cc p { font-size:11.5px; color:var(--muted); line-height:1.5; }
+
+/* ── QUIZ ── */
+.q-q { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 14px; line-height: 1.5; }
+.q-opts { display: flex; flex-direction: column; gap: 9px; }
+.q-opt {
+  padding: 11px 16px; border-radius: 9px; border: 2px solid var(--border);
+  cursor: pointer; font-size: 13.5px; transition: all .15s;
+  background: white; text-align: left; font-family: 'Inter', sans-serif;
+}
+.q-opt:hover:not(:disabled) { border-color: var(--navy); background: #f0f4ff; }
+.q-opt.correct { border-color: var(--green); background: #dcfce7; color: #166534; font-weight: 600; }
+.q-opt.wrong { border-color: var(--red); background: #fee2e2; color: #991b1b; }
+.q-fb { margin-top: 12px; padding: 12px 14px; border-radius: 9px; font-size: 13px; line-height: 1.6; display: none; }
+.q-fb.show { display: block; }
+.q-fb.ok { background: #dcfce7; color: #166534; }
+.q-fb.ko { background: #fee2e2; color: #991b1b; }
+
+/* ── BTNS ── */
+.btn {
+  padding: 9px 18px; border: none; border-radius: 8px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all .15s; letter-spacing: .2px;
+}
+.btn-navy { background: var(--navy); color: white; }
+.btn-navy:hover { background: var(--navy-light); transform: translateY(-1px); }
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-gold:hover { background: var(--gold-light); }
+.btn-outline { background: transparent; color: var(--navy); border: 2px solid var(--navy); }
+.btn-outline:hover { background: var(--navy); color: white; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+/* ── LEGEND ── */
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; }
+.legend span { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.legend span b { display: inline-block; width: 18px; height: 3px; border-radius: 2px; }
+
+/* ── SCORE BAR ── */
+.sbar-wrap { background: #e5e7eb; border-radius: 100px; height: 7px; margin-top: 5px; }
+.sbar { height: 7px; border-radius: 100px; background: linear-gradient(90deg, var(--navy), var(--gold)); transition: width .4s; }
+
+/* ── INFO PILLS ── */
+.kp { display: flex; flex-direction: column; gap: 10px; }
+.kp-item { padding: 12px 14px; border-radius: 9px; font-size: 13px; line-height: 1.55; }
+.kp-item .kt { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 3px; }
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px; font-weight: 800;
+  color: var(--navy); margin-bottom: 18px;
+}
+.sec-title span { color: var(--gold); }
+
+/* ── HINT ── */
+.hint { font-size: 11.5px; color: var(--muted); font-style: italic; margin-top: 7px; text-align: center; }
+hr.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--navy); color: rgba(255,255,255,.5);
+  font-size: 11.5px; text-align: center; padding: 16px;
+  margin-top: 32px; letter-spacing: .3px;
+}
+footer strong { color: var(--gold); }
+
+/* ── RESPONSIVE TWEAKS ── */
+@media(max-width:600px){
+  .header-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .header-title { font-size: 16px; }
+  .main { padding: 16px 12px 32px; }
+  .card { padding: 14px; }
+  .ig { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ig-item .val { font-size: 18px; }
+  .cc-row { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:400px){
+  .cc-row { grid-template-columns: 1fr; }
+  .ig { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+    <div class="header-text">
+      <div class="header-tag">Recurso Interactivo · Economía</div>
+      <div class="header-title">Frontera de Posibilidades de Producción</div>
+      <div class="header-sub">
+        Cátedra Economía &nbsp;·&nbsp; IICG · ECIEM · UCN &nbsp;·&nbsp; Primer Semestre 2026 &nbsp;|&nbsp; Prof. <strong>Alberto Rojas Castro</strong>
+      </div>
+    </div>
+  </div>
+  <nav class="tab-nav" id="tabNav">
+    <button class="tab-btn active" data-tab="explorador">🗺️ Explorador</button>
+    <button class="tab-btn" data-tab="costoopo">💰 Costo de Oportunidad</button>
+    <button class="tab-btn" data-tab="desplazamientos">📈 Desplazamientos</button>
+    <button class="tab-btn" data-tab="tabla">📊 Tabla FPP</button>
+  </nav>
+</header>
+
+<div class="main">
+
+<!-- TAB 1: EXPLORADOR -->
+<div id="tab-explorador" class="tab-panel active">
+  <p class="sec-title">Explora la <span>Frontera</span></p>
+  <div class="g2">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hd"><span class="ico">🎯</span>Instrucciones</div>
+        <p style="font-size:13.5px;line-height:1.7;color:var(--muted)">Haz <strong>clic o arrastra</strong> el punto dentro del gráfico para ubicarte en la FPP.</p>
+        <div class="cc-row">
+          <div class="cc green"><h4>✅ Sobre la FPP</h4><p>Producción eficiente. Todos los recursos están utilizados.</p></div>
+          <div class="cc yellow"><h4>⚠️ Bajo la FPP</h4><p>Ineficiencia: recursos ociosos o desempleo.</p></div>
+          <div class="cc red"><h4>❌ Fuera de la FPP</h4><p>Inalcanzable con tecnología actual.</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="ico">📍</span>Posición actual</div>
+        <div id="exp-badge" class="zbadge ineficiente" style="margin-bottom:12px">⚠️ Zona ineficiente</div>
+        <div class="ig">
+          <div class="ig-item"><div class="lbl">🟤 Cobre (miles t.)</div><div class="val" id="exp-x">—</div></div>
+          <div class="ig-item"><div class="lbl">🌿 Alimentos (miles t.)</div><div class="val" id="exp-y">—</div></div>
+        </div>
+        <div class="explain" id="exp-explain"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div class="cv-wrap" id="exp-canvas-wrap">
+        <canvas id="exp-canvas" width="500" height="460"></canvas>
+      </div>
+      <p class="hint">👆 Haz clic o arrastra para explorar</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: COSTO DE OPORTUNIDAD -->
+<div id="tab-costoopo" class="tab-panel">
+  <p class="sec-title">Costo de <span>Oportunidad</span></p>
+  <div class="g2">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hd"><span class="ico">💡</span>¿Qué es el Costo de Oportunidad?</div>
+        <p style="font-size:13.5px;line-height:1.7;color:var(--muted)">Al movernos <strong>sobre la FPP</strong>, producir más de un bien implica renunciar a parte del otro. La cantidad sacrificada es el <strong>costo de oportunidad</strong>. Mueve el deslizador.</p>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="ico">🔄</span>Asignación de recursos</div>
+        <div class="sl-wrap">
+          <label>% Recursos para <strong>Cobre</strong>: <span id="co-pct">50</span>%</label>
+          <input type="range" id="co-slider" min="0" max="100" value="50" oninput="updateCO(this.value)">
+        </div>
+        <div class="co-box">
+          <div class="co-lbl">Costo de Oportunidad marginal</div>
+          <div class="co-val" id="co-value">—</div>
+          <div class="co-desc" id="co-desc">Mueve el deslizador</div>
+        </div>
+        <div class="ig">
+          <div class="ig-item"><div class="lbl">🟤 Cobre</div><div class="val" id="co-cobre">—</div></div>
+          <div class="ig-item"><div class="lbl">🌿 Alimentos</div><div class="val" id="co-alim">—</div></div>
+        </div>
+        <div class="explain" id="co-explain" style="display:none"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div class="cv-wrap">
+        <canvas id="co-canvas" width="500" height="400"></canvas>
+      </div>
+      <p style="font-size:11.5px;text-align:center;color:var(--muted);margin-top:8px;font-style:italic">La pendiente de la FPP refleja el costo de oportunidad creciente</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: DESPLAZAMIENTOS -->
+<div id="tab-desplazamientos" class="tab-panel">
+  <p class="sec-title"><span>Desplazamientos</span> de la FPP</p>
+  <div class="g2">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hd"><span class="ico">⚡</span>¿Qué desplaza la FPP?</div>
+        <p style="font-size:13.5px;line-height:1.7;color:var(--muted)">La FPP se desplaza cuando cambian los factores estructurales. Selecciona un escenario:</p>
+        <div class="sg" id="shift-options">
+          <div class="sc selected" data-sc="base"><div class="si">⚖️</div><div class="st">Situación base</div><div class="sd">Estado inicial</div></div>
+          <div class="sc" data-sc="tech"><div class="si">🔬</div><div class="st">Mejora tecnológica</div><div class="sd">Innovación en ambos sectores</div></div>
+          <div class="sc" data-sc="techcobre"><div class="si">⛏️</div><div class="st">Tech. en Minería</div><div class="sd">Solo mejora el sector cobre</div></div>
+          <div class="sc" data-sc="more"><div class="si">👥</div><div class="st">Más fuerza laboral</div><div class="sd">Aumento población activa</div></div>
+          <div class="sc" data-sc="less"><div class="si">🌊</div><div class="st">Destrucción de capital</div><div class="sd">Desastre natural, conflicto</div></div>
+          <div class="sc" data-sc="anim"><div class="si">▶️</div><div class="st">Animar todos</div><div class="sd">Ver evolución comparada</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="ico">📌</span>Interpretación</div>
+        <div id="shift-explain" style="font-size:13.5px;line-height:1.8;color:var(--muted)">La <strong>situación base</strong> muestra la FPP actual. Selecciona un escenario para ver el desplazamiento.</div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div class="cv-wrap">
+        <canvas id="shift-canvas" width="500" height="420"></canvas>
+      </div>
+      <div class="legend">
+        <span><b style="background:var(--navy)"></b>FPP Base</span>
+        <span><b style="background:var(--green);border-top:2px dashed var(--green)"></b>Nueva FPP</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: TABLA -->
+<div id="tab-tabla" class="tab-panel">
+  <p class="sec-title">Tabla de <span>Posibilidades</span></p>
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="card-hd"><span class="ico">📊</span>Combinaciones posibles</div>
+        <p style="font-size:13.5px;line-height:1.7;color:var(--muted);margin-bottom:12px">Haz clic en una fila para ver el punto en el gráfico y calcular el costo de oportunidad.</p>
+        <table class="ftbl" id="fpp-table">
+          <thead><tr><th>Opción</th><th>🟤 Cobre (miles t.)</th><th>🌿 Alimentos (miles t.)</th><th>C.O. (Cobre)</th></tr></thead>
+          <tbody id="fpp-tbody"></tbody>
+        </table>
+        <p class="hint" style="text-align:left;margin-top:8px">*C.O.: miles t. de alimentos sacrificadas por 1 mil t. de cobre adicional</p>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="padding:14px;margin-bottom:16px">
+        <div class="cv-wrap">
+          <canvas id="tabla-canvas" width="500" height="350"></canvas>
+        </div>
+      </div>
+      <div class="card" id="tabla-info" style="display:none">
+        <div class="card-hd"><span class="ico">🔍</span>Análisis del punto</div>
+        <div id="tabla-detail" style="font-size:13.5px;line-height:1.8;color:var(--muted)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<footer>
+  <strong>ECIEM · UCN Coquimbo</strong> · Cátedra Economía · IICG · Primer Semestre 2026 · Prof. Alberto Rojas Castro
+</footer>
+
+<script>
+// ─── DATA ───────────────────────────────────────────
+const MX = 100, MY = 80;
+function fppY(x){ const r=x/MX; return r>1?0:MY*Math.sqrt(1-r*r); }
+function fppX(y){ const r=y/MY; return r>1?0:MX*Math.sqrt(1-r*r); }
+
+const TABLE_PTS = [
+  {opt:'A',x:0,  y:80},
+  {opt:'B',x:20, y:fppY(20)},
+  {opt:'C',x:40, y:fppY(40)},
+  {opt:'D',x:60, y:fppY(60)},
+  {opt:'E',x:80, y:fppY(80)},
+  {opt:'F',x:100,y:0},
+];
+
+// ─── CANVAS HELPERS ─────────────────────────────────
+function makeTF(cv,maxX,maxY,pad){
+  const W=cv.width,H=cv.height;
+  const p=pad||{l:58,r:20,t:22,b:52};
+  const pW=W-p.l-p.r, pH=H-p.t-p.b;
+  return {
+    tc:(x,y)=>({cx:p.l+(x/maxX)*pW, cy:p.t+pH-(y/maxY)*pH}),
+    fc:(cx,cy)=>({x:((cx-p.l)/pW)*maxX, y:((p.t+pH-cy)/pH)*maxY}),
+    p,W,H,pW,pH
+  };
+}
+
+function drawAxes(ctx,tf,mX,mY,lX,lY){
+  const {tc,p,W,H,pW,pH}=tf;
+  ctx.save();
+  ctx.strokeStyle='#e4e8f0'; ctx.lineWidth=1;
+  [0,1,2,3,4,5].forEach(i=>{ const x=(i/5)*mX; const{cx}=tc(x,0);
+    ctx.beginPath(); ctx.moveTo(cx,p.t); ctx.lineTo(cx,p.t+pH); ctx.stroke();
+    ctx.fillStyle='#888'; ctx.font='11px Inter,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(Math.round(x),cx,p.t+pH+18);
+  });
+  [0,1,2,3,4].forEach(i=>{ const y=(i/4)*mY; const{cy}=tc(0,y);
+    ctx.beginPath(); ctx.moveTo(p.l,cy); ctx.lineTo(p.l+pW,cy); ctx.stroke();
+    ctx.textAlign='right'; ctx.fillText(Math.round(y),p.l-7,cy+4);
+  });
+  ctx.strokeStyle='#333'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(p.l,p.t); ctx.lineTo(p.l,p.t+pH+6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(p.l-6,p.t+pH); ctx.lineTo(p.l+pW,p.t+pH); ctx.stroke();
+  ctx.fillStyle='#333'; ctx.font='bold 11.5px Inter,sans-serif'; ctx.textAlign='center';
+  ctx.fillText(lX||'Cobre (miles t.)',p.l+pW/2,H-5);
+  ctx.save(); ctx.translate(14,p.t+pH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(lY||'Alimentos (miles t.)',0,0); ctx.restore();
+  ctx.restore();
+}
+
+function drawCurve(ctx,tf,maxX,maxY,color,lw,sc){
+  const{tc}=tf; const sx=sc?sc.x:maxX, sy=sc?sc.y:maxY;
+  ctx.save(); ctx.strokeStyle=color||'#082959'; ctx.lineWidth=lw||3;
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const xv=(i/200)*sx, yv=sy*Math.sqrt(1-(xv/sx)**2);
+    const{cx,cy}=tc(xv,yv); i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+  }
+  ctx.stroke(); ctx.restore();
+}
+
+function drawZones(ctx,tf,mX,mY){
+  const{tc,p,pW,pH}=tf;
+  ctx.save();
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const xv=(i/200)*mX,yv=fppY(xv),{cx,cy}=tc(xv,yv);
+    i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+  }
+  const{cx:x0,cy:y0}=tc(0,0);
+  ctx.lineTo(x0,p.t+pH); ctx.closePath();
+  ctx.fillStyle='rgba(217,119,6,.07)'; ctx.fill();
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const xv=(i/200)*mX,yv=fppY(xv),{cx,cy}=tc(xv,yv);
+    i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+  }
+  ctx.lineTo(p.l+pW,p.t); ctx.lineTo(p.l,p.t); ctx.closePath();
+  ctx.fillStyle='rgba(220,38,38,.05)'; ctx.fill();
+  ctx.restore();
+}
+
+// ─── TAB EXPLORER ───────────────────────────────────
+let expPt={x:40,y:35};
+const expCv=document.getElementById('exp-canvas');
+const expCtx=expCv.getContext('2d');
+
+function drawExplorer(){
+  const tf=makeTF(expCv,MX,MY,{l:60,r:20,t:24,b:54});
+  expCtx.clearRect(0,0,expCv.width,expCv.height);
+  drawZones(expCtx,tf,MX,MY);
+  drawAxes(expCtx,tf,MX,MY);
+  drawCurve(expCtx,tf,MX,MY,'#082959',3);
+
+  expCtx.font='bold 10.5px Inter,sans-serif'; expCtx.textAlign='center';
+  expCtx.fillStyle='rgba(220,38,38,.6)';
+  expCtx.fillText('❌ Inalcanzable',tf.p.l+tf.pW*.72,tf.p.t+24);
+  expCtx.fillStyle='rgba(217,119,6,.85)';
+  expCtx.fillText('⚠️ Ineficiente',tf.p.l+tf.pW*.18,tf.p.t+tf.pH*.87);
+  expCtx.fillStyle='rgba(22,163,74,.85)';
+  expCtx.fillText('✅ Eficiente',tf.p.l+tf.pW*.55,tf.p.t+tf.pH*.52);
+
+  const{cx,cy}=tf.tc(expPt.x,expPt.y);
+  const yFPP=fppY(expPt.x);
+  let zone,col;
+  if(expPt.x<0||expPt.y<0||expPt.y>yFPP+.5){zone='inalcanzable';col='#dc2626';}
+  else if(Math.abs(expPt.y-yFPP)<=2){zone='eficiente';col='#16a34a';}
+  else{zone='ineficiente';col='#d97706';}
+
+  expCtx.setLineDash([4,3]); expCtx.strokeStyle='rgba(0,0,0,.18)'; expCtx.lineWidth=1;
+  const{cx:axX}=tf.tc(expPt.x,0); const{cy:axY}=tf.tc(0,expPt.y);
+  expCtx.beginPath(); expCtx.moveTo(cx,cy); expCtx.lineTo(cx,tf.p.t+tf.pH); expCtx.stroke();
+  expCtx.beginPath(); expCtx.moveTo(cx,cy); expCtx.lineTo(tf.p.l,cy); expCtx.stroke();
+  expCtx.setLineDash([]);
+
+  expCtx.beginPath(); expCtx.arc(cx,cy+3,10,0,Math.PI*2);
+  expCtx.fillStyle='rgba(0,0,0,.12)'; expCtx.fill();
+  expCtx.beginPath(); expCtx.arc(cx,cy,9,0,Math.PI*2);
+  expCtx.fillStyle=col; expCtx.fill();
+  expCtx.strokeStyle='white'; expCtx.lineWidth=2.5; expCtx.stroke();
+
+  const badge=document.getElementById('exp-badge');
+  const bm={eficiente:['✅ Sobre la FPP — Eficiente','eficiente'],ineficiente:['⚠️ Bajo la FPP — Ineficiente','ineficiente'],inalcanzable:['❌ Inalcanzable','inalcanzable']};
+  badge.textContent=bm[zone][0]; badge.className='zbadge '+bm[zone][1];
+  document.getElementById('exp-x').textContent=expPt.x.toFixed(1);
+  document.getElementById('exp-y').textContent=expPt.y.toFixed(1);
+
+  const expl={
+    eficiente:`<strong>📌</strong> (${expPt.x.toFixed(1)}, ${expPt.y.toFixed(1)}) está sobre la FPP. Producción eficiente: no hay recursos ociosos. Sin nueva tecnología, no se puede aumentar ambos bienes simultáneamente.`,
+    ineficiente:`<strong>⚠️</strong> (${expPt.x.toFixed(1)}, ${expPt.y.toFixed(1)}) está bajo la FPP. Se podrían producir ${(yFPP-expPt.y).toFixed(1)} mil t. más de alimentos (o más cobre) sin costo adicional. Existen recursos ociosos.`,
+    inalcanzable:`<strong>❌</strong> (${expPt.x.toFixed(1)}, ${expPt.y.toFixed(1)}) supera la FPP. Imposible con tecnología y recursos actuales. Se requeriría mejora tecnológica o mayor dotación de factores.`
+  };
+  document.getElementById('exp-explain').innerHTML=expl[zone];
+}
+
+function handleExpClick(e){
+  const rect=expCv.getBoundingClientRect();
+  const sx=expCv.width/rect.width, sy=expCv.height/rect.height;
+  const cx=(e.clientX-rect.left)*sx, cy=(e.clientY-rect.top)*sy;
+  const tf=makeTF(expCv,MX,MY,{l:60,r:20,t:24,b:54});
+  const{x,y}=tf.fc(cx,cy);
+  expPt={x:Math.max(-5,Math.min(x,MX*1.2)),y:Math.max(-5,Math.min(y,MY*1.2))};
+  drawExplorer();
+}
+expCv.addEventListener('click',handleExpClick);
+expCv.addEventListener('mousemove',e=>{if(e.buttons===1)handleExpClick(e);});
+expCv.addEventListener('touchmove',e=>{e.preventDefault();handleExpClick(e.touches[0]);},{passive:false});
+expCv.addEventListener('touchstart',e=>{handleExpClick(e.touches[0]);},{passive:true});
+
+// ─── COSTO DE OPORTUNIDAD ───────────────────────────
+const coCv=document.getElementById('co-canvas');
+const coCtx=coCv.getContext('2d');
+
+function updateCO(val){
+  const pct=parseInt(val);
+  document.getElementById('co-pct').textContent=pct;
+  document.getElementById('co-slider').style.setProperty('--pct',pct+'%');
+  const x=(pct/100)*MX, y=fppY(x);
+  document.getElementById('co-cobre').textContent=x.toFixed(1)+' mil t.';
+  document.getElementById('co-alim').textContent=y.toFixed(1)+' mil t.';
+  const dx=2, x2=Math.min(x+dx,MX), y2=fppY(x2);
+  const co=Math.abs(y2-y)/(x2-x);
+  const ve=document.getElementById('co-value');
+  const vd=document.getElementById('co-desc');
+  const vex=document.getElementById('co-explain');
+  if(pct===0){ve.textContent='0';vd.textContent='Toda la producción es Alimentos';vex.style.display='none';}
+  else if(pct===100){ve.textContent='∞';vd.textContent='Límite máximo de Cobre';vex.style.display='none';}
+  else{
+    ve.textContent=co.toFixed(2)+' mil t. Alim.';
+    vd.textContent='por cada 1 mil t. adicional de Cobre';
+    vex.style.display='block';
+    vex.innerHTML=`Dedicar <strong>${pct}%</strong> de recursos al cobre implica sacrificar <strong>${co.toFixed(2)} mil t. de alimentos</strong> por cada mil t. adicional de cobre. ${co<1.2?'El costo es bajo (inicio de la curva).':co<2?'El costo va aumentando (zona media).':'El costo es alto (cerca del límite).'}`;
+  }
+  drawCO(x,y);
+}
+
+function drawCO(xc,yc){
+  const tf=makeTF(coCv,MX,MY,{l:60,r:20,t:24,b:54});
+  coCtx.clearRect(0,0,coCv.width,coCv.height);
+  drawAxes(coCtx,tf,MX,MY);
+  drawCurve(coCtx,tf,MX,MY,'#082959',3);
+  if(xc>2&&xc<MX-2){
+    const dx=8,x1=Math.max(0,xc-dx),x2=Math.min(MX,xc+dx);
+    const{cx:c1x,cy:c1y}=tf.tc(x1,fppY(x1));
+    const{cx:c2x,cy:c2y}=tf.tc(x2,fppY(x2));
+    coCtx.beginPath(); coCtx.moveTo(c1x,c1y); coCtx.lineTo(c2x,c2y);
+    coCtx.strokeStyle='#c8a850'; coCtx.lineWidth=2.5; coCtx.stroke();
+  }
+  const{cx,cy}=tf.tc(xc,yc);
+  coCtx.beginPath(); coCtx.arc(cx,cy,9,0,Math.PI*2);
+  coCtx.fillStyle='#082959'; coCtx.fill();
+  coCtx.strokeStyle='#c8a850'; coCtx.lineWidth=3; coCtx.stroke();
+  coCtx.font='bold 11px Inter,sans-serif'; coCtx.fillStyle='#082959'; coCtx.textAlign='center';
+  coCtx.fillText('('+xc.toFixed(0)+', '+yc.toFixed(0)+')',cx,cy-15);
+  coCtx.setLineDash([4,3]); coCtx.strokeStyle='rgba(0,0,0,.2)'; coCtx.lineWidth=1;
+  const{cx:axX}=tf.tc(xc,0); const{cy:axY}=tf.tc(0,yc);
+  coCtx.beginPath(); coCtx.moveTo(cx,cy); coCtx.lineTo(cx,tf.p.t+tf.pH); coCtx.stroke();
+  coCtx.beginPath(); coCtx.moveTo(cx,cy); coCtx.lineTo(tf.p.l,cy); coCtx.stroke();
+  coCtx.setLineDash([]);
+}
+
+// ─── DESPLAZAMIENTOS ────────────────────────────────
+const shCv=document.getElementById('shift-canvas');
+const shCtx=shCv.getContext('2d');
+let animFrame=null;
+
+const shConfigs={
+  base:{nX:MX,nY:MY,color:null,explain:'La <strong>situación base</strong> muestra la FPP actual.'},
+  tech:{nX:MX*1.25,nY:MY*1.25,color:'#16a34a',explain:'<strong>🔬 Mejora tecnológica en ambos sectores:</strong> La FPP se expande. La economía puede producir más de ambos bienes. Ejemplo: automatización, IA.'},
+  techcobre:{nX:MX*1.35,nY:MY,color:'#8b5cf6',explain:'<strong>⛏️ Mejora tecnológica solo en Minería:</strong> La FPP se expande solo en el eje cobre. La capacidad de alimentos no cambia. Ejemplo: nueva tecnología de extracción minera.'},
+  more:{nX:MX*1.2,nY:MY*1.2,color:'#0d9488',explain:'<strong>👥 Mayor fuerza laboral:</strong> Más factor trabajo expande la FPP en ambos ejes. Ejemplo: inmigración laboral, mayor participación.'},
+  less:{nX:MX*.72,nY:MY*.72,color:'#dc2626',explain:'<strong>🌊 Destrucción de capital:</strong> La FPP se contrae. Ejemplo: terremoto, tsunami, conflicto armado.'},
+};
+
+function drawShift(key,t){
+  const cfg=shConfigs[key];
+  const maxD=1.5;
+  const tf=makeTF(shCv,MX*maxD,MY*maxD,{l:60,r:20,t:24,b:54});
+  shCtx.clearRect(0,0,shCv.width,shCv.height);
+  drawAxes(shCtx,tf,MX*maxD,MY*maxD,'Cobre (miles t.)','Alimentos (miles t.)');
+  if(key!=='base'&&t>0){
+    const nX=MX+(cfg.nX-MX)*t, nY=MY+(cfg.nY-MY)*t;
+    shCtx.save();
+    shCtx.beginPath();
+    for(let i=0;i<=200;i++){
+      const xv=(i/200)*nX, yv=nY*Math.sqrt(1-(xv/nX)**2);
+      const{cx,cy}=tf.tc(xv,yv); i===0?shCtx.moveTo(cx,cy):shCtx.lineTo(cx,cy);
+    }
+    for(let i=200;i>=0;i--){
+      const xv=(i/200)*MX, yv=MY*Math.sqrt(1-(xv/MX)**2);
+      const{cx,cy}=tf.tc(xv,yv); shCtx.lineTo(cx,cy);
+    }
+    shCtx.closePath();
+    const c=cfg.color||'#16a34a';
+    // Parse hex to rgba safely
+    let r2=0,g2=0,b2=0;
+    if(c.startsWith('#')){
+      const bigint=parseInt(c.slice(1),16);
+      r2=(bigint>>16)&255; g2=(bigint>>8)&255; b2=bigint&255;
+    }
+    shCtx.fillStyle='rgba('+r2+','+g2+','+b2+','+(0.05*t)+')';
+    shCtx.fill();
+    shCtx.restore();
+    const{cx,cy}=tf.tc(nX*.6,nY*Math.sqrt(1-.36)*.96);
+    shCtx.font='bold 11px Inter,sans-serif'; shCtx.fillStyle=cfg.color||'#16a34a'; shCtx.textAlign='left';
+    if(t>.5) shCtx.fillText('FPP nueva',cx+6,cy-4);
+    shCtx.save(); shCtx.setLineDash([8,4]);
+    drawCurve(shCtx,tf,MX*maxD,MY*maxD,cfg.color||'#16a34a',2.5,{x:nX,y:nY});
+    shCtx.restore();
+  }
+  drawCurve(shCtx,tf,MX*maxD,MY*maxD,'#082959',3,{x:MX,y:MY});
+  const{cx:bx,cy:by}=tf.tc(MX*.55,MY*Math.sqrt(1-.3)*.9);
+  shCtx.font='bold 11px Inter,sans-serif'; shCtx.fillStyle='#082959'; shCtx.textAlign='right';
+  shCtx.fillText('FPP base',bx-4,by+14);
+}
+
+document.getElementById('shift-options').querySelectorAll('.sc').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const key=el.dataset.sc;
+    if(key==='anim'){runAnim();return;}
+    if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
+    document.querySelectorAll('.sc').forEach(s=>s.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('shift-explain').innerHTML=shConfigs[key].explain;
+    drawShift(key,1);
+  });
+});
+
+function runAnim(){
+  const keys=['base','tech','techcobre','more','less'];
+  let ki=0,t=0,dir=1;
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('selected'));
+  document.querySelector('[data-sc="anim"]').classList.add('selected');
+  function step(){
+    t+=.015*dir; if(t>=1){t=1;dir=-1;} if(t<=0){t=0;dir=1;ki=(ki+1)%keys.length;}
+    document.getElementById('shift-explain').innerHTML=shConfigs[keys[ki]].explain;
+    drawShift(keys[ki],t);
+    animFrame=requestAnimationFrame(step);
+  }
+  if(animFrame)cancelAnimationFrame(animFrame);
+  animFrame=requestAnimationFrame(step);
+}
+
+// ─── TABLA ──────────────────────────────────────────
+const tblCv=document.getElementById('tabla-canvas');
+const tblCtx=tblCv.getContext('2d');
+let selRow=-1;
+
+function buildTable(){
+  const tb=document.getElementById('fpp-tbody');
+  tb.innerHTML='';
+  TABLE_PTS.forEach((pt,i)=>{
+    const co=i===0?'—':(()=>{
+      const prev=TABLE_PTS[i-1];
+      const dy=Math.abs(pt.y-prev.y);
+      return (dy/(pt.x-prev.x)).toFixed(2);
+    })();
+    const tr=document.createElement('tr');
+    tr.id='row-'+i;
+    tr.innerHTML=`<td><strong>${pt.opt}</strong></td><td>${pt.x.toFixed(0)}</td><td>${pt.y.toFixed(1)}</td><td>${co}</td>`;
+    tr.style.cursor='pointer';
+    tr.addEventListener('click',()=>selTableRow(i));
+    tb.appendChild(tr);
+  });
+}
+
+function selTableRow(i){
+  selRow=i;
+  document.querySelectorAll('#fpp-tbody tr').forEach((tr,idx)=>tr.classList.toggle('active-row',idx===i));
+  drawTabla();
+  const pt=TABLE_PTS[i];
+  document.getElementById('tabla-info').style.display='block';
+  let html=`<strong>Opción ${pt.opt}</strong>: producir <strong>${pt.x.toFixed(0)} mil t. de cobre</strong> y <strong>${pt.y.toFixed(1)} mil t. de alimentos</strong>.`;
+  if(i>0){
+    const prev=TABLE_PTS[i-1];
+    const dy=Math.abs(pt.y-prev.y), dx=pt.x-prev.x;
+    html+=`<br><br>Pasar de <strong>${prev.opt}</strong> → <strong>${pt.opt}</strong>: producir ${dx} mil t. más de cobre implica sacrificar ${dy.toFixed(1)} mil t. de alimentos. C.O. = <strong>${(dy/dx).toFixed(2)}</strong>.`;
+  }
+  document.getElementById('tabla-detail').innerHTML=html;
+}
+
+function drawTabla(){
+  const tf=makeTF(tblCv,MX,MY,{l:55,r:20,t:22,b:50});
+  tblCtx.clearRect(0,0,tblCv.width,tblCv.height);
+  drawAxes(tblCtx,tf,MX,MY);
+  drawCurve(tblCtx,tf,MX,MY,'#082959',2.5);
+  TABLE_PTS.forEach((pt,i)=>{
+    const{cx,cy}=tf.tc(pt.x,pt.y);
+    const isSel=i===selRow;
+    tblCtx.beginPath(); tblCtx.arc(cx,cy,isSel?10:6,0,Math.PI*2);
+    tblCtx.fillStyle=isSel?'#c8a850':'#082959'; tblCtx.fill();
+    tblCtx.strokeStyle='white'; tblCtx.lineWidth=2; tblCtx.stroke();
+    tblCtx.font=(isSel?'bold ':'')+'11px Inter,sans-serif';
+    tblCtx.fillStyle='#082959'; tblCtx.textAlign='center';
+    tblCtx.fillText(pt.opt,cx,cy-14);
+  });
+  tblCtx.setLineDash([3,3]); tblCtx.strokeStyle='rgba(8,41,89,.2)'; tblCtx.lineWidth=1;
+  tblCtx.beginPath();
+  TABLE_PTS.forEach((pt,i)=>{
+    const{cx,cy}=tf.tc(pt.x,pt.y); i===0?tblCtx.moveTo(cx,cy):tblCtx.lineTo(cx,cy);
+  }); tblCtx.stroke(); tblCtx.setLineDash([]);
+}
+
+// ─── QUIZ ───────────────────────────────────────────
+const QUESTIONS=[
+  {q:'Un punto ubicado DEBAJO de la FPP indica:',
+   opts:['Producción imposible de alcanzar','Uso eficiente de todos los recursos','Existencia de recursos ociosos o desempleo','Mejora tecnológica reciente'],
+   correct:2,fb:'✅ Correcto. Un punto bajo la FPP indica ineficiencia productiva: hay recursos ociosos, capacidad instalada sin usar o desempleo.'},
+  {q:'La FPP tiene forma cóncava (hacia el origen) porque:',
+   opts:['Los recursos son perfectamente sustitutos','El costo de oportunidad es constante','El costo de oportunidad es creciente','La tecnología es idéntica en ambos sectores'],
+   correct:2,fb:'✅ Correcto. El costo de oportunidad es creciente: al reasignar recursos, los primeros transferidos son más productivos en el nuevo sector que los siguientes.'},
+  {q:'Si Chile desarrolla nueva tecnología de extracción de litio (sin mejorar la agricultura), la FPP:',
+   opts:['Se desplaza hacia afuera en ambos ejes por igual','Solo se expande en el eje de los minerales','Se contrae hacia el origen','No cambia'],
+   correct:1,fb:'✅ Correcto. Una mejora tecnológica sectorial desplaza la FPP solo en el eje del sector que mejora.'},
+  {q:'¿Qué representa el COSTO DE OPORTUNIDAD en la FPP?',
+   opts:['El precio de mercado de los bienes','El gasto fiscal para producir un bien','La cantidad del otro bien que se sacrifica al producir una unidad adicional','El salario de los trabajadores del sector'],
+   correct:2,fb:'✅ Correcto. El costo de oportunidad es lo que se renuncia: la cantidad del bien alternativo que se deja de producir para obtener más del elegido.'},
+  {q:'Una economía sufre un desastre natural que destruye parte de su capital. La FPP:',
+   opts:['Se desplaza hacia afuera','No cambia, solo cambia la eficiencia','Se desplaza hacia adentro (contracción)','Solo cambia el eje horizontal'],
+   correct:2,fb:'✅ Correcto. La destrucción de capital reduce la capacidad productiva. La FPP se contrae hacia el origen.'},
+  {q:'Un punto SOBRE la FPP (más allá de la curva) representa:',
+   opts:['Producción eficiente con pleno empleo','Una combinación actualmente inalcanzable','Ineficiencia por desempleo','Una oportunidad de reducir costos'],
+   correct:1,fb:'✅ Correcto. Los puntos fuera de la FPP son inalcanzables con la tecnología y recursos actuales.'},
+];
+
+let qIdx=0, score=0, answered=false;
+
+function loadQuestion(){
+  const q=QUESTIONS[qIdx];
+  document.getElementById('q-num').textContent=qIdx+1;
+  document.getElementById('q-total').textContent=QUESTIONS.length;
+  document.getElementById('quiz-question').textContent=q.q;
+  const opts=document.getElementById('quiz-options');
+  opts.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-opt'; btn.textContent=opt;
+    btn.onclick=()=>answerQ(i);
+    opts.appendChild(btn);
+  });
+  const fb=document.getElementById('quiz-fb');
+  fb.className='q-fb'; fb.textContent='';
+  document.getElementById('btn-next').style.display='none';
+  // Remove any result panels
+  document.querySelectorAll('#quiz-nav .result-panel').forEach(e=>e.remove());
+  answered=false;
+}
+
+function answerQ(i){
+  if(answered)return;
+  answered=true;
+  const q=QUESTIONS[qIdx];
+  document.querySelectorAll('.q-opt').forEach((btn,idx)=>{
+    btn.disabled=true;
+    if(idx===q.correct) btn.classList.add('correct');
+    else if(idx===i) btn.classList.add('wrong');
+  });
+  const fb=document.getElementById('quiz-fb');
+  if(i===q.correct){ score++; fb.innerHTML=q.fb; fb.className='q-fb show ok'; }
+  else { fb.innerHTML='❌ Incorrecto. Respuesta correcta: <strong>'+q.opts[q.correct]+'</strong>.<br>'+q.fb; fb.className='q-fb show ko'; }
+  document.getElementById('q-score').textContent=score+' / '+(qIdx+1);
+  const pct=(score/(qIdx+1))*100;
+  document.getElementById('score-bar').style.width=pct+'%';
+  const btnNext=document.getElementById('btn-next');
+  if(qIdx<QUESTIONS.length-1){ btnNext.style.display='inline-flex'; }
+  else {
+    // Final result
+    const res=document.createElement('div');
+    res.className='result-panel';
+    const nota=(score/QUESTIONS.length*100).toFixed(0);
+    res.style.cssText='margin-top:12px;padding:14px;border-radius:10px;background:var(--navy);color:white;font-size:14px;text-align:center;';
+    res.innerHTML='<strong style="color:var(--gold);font-family:Outfit,sans-serif;font-size:20px">'+score+'/'+QUESTIONS.length+'</strong> correctas ('+nota+'%)<br><span style="font-size:12.5px;opacity:.8">'+(nota>=80?'¡Excelente dominio del tema!':nota>=60?'Buen manejo, repasa los errores.':'Te recomendamos volver al explorador interactivo.')+'</span>';
+    document.getElementById('quiz-nav').prepend(res);
+  }
+}
+
+function nextQuestion(){
+  if(qIdx<QUESTIONS.length-1){ qIdx++; loadQuestion(); }
+}
+
+function resetQuiz(){
+  qIdx=0; score=0; answered=false;
+  document.getElementById('q-score').textContent='0 / 0';
+  document.getElementById('score-bar').style.width='0%';
+  document.querySelectorAll('#quiz-nav .result-panel').forEach(e=>e.remove());
+}
+
+// ─── TAB SWITCHING ──────────────────────────────────
+document.getElementById('tabNav').querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const id=btn.dataset.tab;
+    // stop animation if switching away
+    if(animFrame&&id!=='desplazamientos'){ cancelAnimationFrame(animFrame); animFrame=null; }
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    btn.classList.add('active');
+    if(id==='costoopo') updateCO(50);
+    if(id==='desplazamientos') drawShift('base',1);
+    if(id==='tabla') drawTabla();
+  });
+});
+
+// ─── INIT ────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  drawExplorer();
+  buildTable();
+  drawTabla();
+  updateCO(50);
+  document.getElementById('co-slider').style.setProperty('--pct','50%');
+  drawShift('base',1);
+});
+</script>
+</body>
+</html>
