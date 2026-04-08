@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Determinantes de la Demanda</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1a2744; --coral: #e05a3a; --mint: #2db89e; --gold: #f0b429;
+  --lav: #7c6fcd; --bg: #f5f0e8; --card: #fffdf8;
+  --text: #1a2744; --muted: #7a7d8a; --border: #ddd8cc;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+.header { background: var(--navy); padding: 2rem 2.5rem 1.5rem; position: relative; overflow: hidden; }
+.header::before { content:''; position:absolute; top:-40px; right:-40px; width:200px; height:200px; border-radius:50%; background:rgba(224,90,58,0.15); }
+.header::after  { content:''; position:absolute; bottom:-20px; left:30%; width:120px; height:120px; border-radius:50%; background:rgba(240,180,41,0.1); }
+.header-inner { max-width:1200px; margin:0 auto; position:relative; z-index:1; }
+.header-tag { display:inline-block; font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--coral); background:rgba(224,90,58,0.15); border:1px solid rgba(224,90,58,0.3); padding:0.25rem 0.7rem; border-radius:20px; margin-bottom:0.75rem; }
+.header h1 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:#fff; line-height:1.1; margin-bottom:0.5rem; }
+.header h1 span { color:var(--gold); }
+.header p { color:rgba(255,255,255,0.6); font-size:0.9rem; max-width:600px; }
+.ucn-badge { position:absolute; top:1.5rem; right:0; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:0.4rem 0.8rem; font-size:0.75rem; color:rgba(255,255,255,0.7); font-weight:500; }
+
+.nav { background:var(--card); border-bottom:2px solid var(--border); position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.nav-inner { max-width:1200px; margin:0 auto; display:flex; overflow-x:auto; scrollbar-width:none; }
+.nav-inner::-webkit-scrollbar { display:none; }
+.nav-btn { flex-shrink:0; padding:1rem 1.4rem; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; color:var(--muted); background:none; border:none; border-bottom:3px solid transparent; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.nav-btn:hover { color:var(--navy); }
+.nav-btn.active { color:var(--navy); border-bottom-color:var(--coral); font-weight:600; }
+
+.main { max-width:1200px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+.section { display:none; animation:fadeIn 0.3s ease; }
+.section.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.section-title { font-family:'Playfair Display',serif; font-size:1.6rem; color:var(--navy); margin-bottom:0.4rem; }
+.section-title span { color:var(--coral); }
+.section-desc { font-size:0.88rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.6; max-width:700px; }
+
+/* FORMULA */
+.fhero { background:var(--navy); border-radius:16px; padding:2rem 2.5rem; margin-bottom:1.5rem; color:white; }
+.fhero h2 { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--gold); margin-bottom:1rem; }
+.fmain { font-family:'DM Mono',monospace; font-size:clamp(0.9rem,2.3vw,1.3rem); letter-spacing:0.03em; line-height:1.5; }
+.fv { display:inline-block; padding:1px 5px; border-radius:4px; font-weight:500; }
+.fv-I  { background:rgba(45,184,158,0.25); color:#5eead4; }
+.fv-G  { background:rgba(124,111,205,0.25); color:#a78bfa; }
+.fv-py { background:rgba(240,180,41,0.25); color:#fcd34d; }
+.fv-pz { background:rgba(45,184,158,0.2); color:#6ee7b7; }
+.fv-px { background:rgba(224,90,58,0.3); color:#fca5a5; }
+.fv-A  { background:rgba(240,180,41,0.3); color:#fcd34d; }
+.fleg { display:grid; grid-template-columns:repeat(auto-fit,minmax(185px,1fr)); gap:0.45rem; margin-top:1.3rem; }
+.fleg-item { display:flex; align-items:flex-start; gap:0.45rem; font-size:0.77rem; color:rgba(255,255,255,0.7); }
+.ldot { width:7px; height:7px; border-radius:50%; margin-top:4px; flex-shrink:0; }
+
+/* DIST */
+.dist-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+@media(max-width:580px){ .dist-row{grid-template-columns:1fr;} }
+.dist-card { border-radius:14px; padding:1.2rem; border:2px solid; }
+.dist-card.mv { background:rgba(37,99,235,0.04); border-color:rgba(37,99,235,0.3); }
+.dist-card.sh { background:rgba(22,163,74,0.04);  border-color:rgba(22,163,74,0.3); }
+.dist-tag { font-size:0.67rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.45rem; }
+.dist-card.mv .dist-tag { color:#2563eb; }
+.dist-card.sh .dist-tag { color:#16a34a; }
+.dist-card h3 { font-size:0.97rem; font-weight:700; color:var(--navy); margin-bottom:0.35rem; }
+.dist-card p { font-size:0.78rem; color:var(--muted); line-height:1.5; }
+
+/* DET CARDS */
+.det-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(225px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.det-card { background:var(--card); border:2px solid var(--border); border-radius:14px; padding:1.1rem 1.2rem; position:relative; overflow:hidden; transition:all 0.2s; }
+.det-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--ca,var(--mint)); border-radius:14px 0 0 14px; }
+.det-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.09); border-color:var(--ca,var(--mint)); }
+.det-emoji { font-size:1.6rem; margin-bottom:0.4rem; }
+.det-card h3 { font-size:0.86rem; font-weight:600; color:var(--navy); margin-bottom:0.25rem; }
+.vbadge { display:inline-block; font-family:'DM Mono',monospace; font-size:0.7rem; background:var(--navy); color:var(--gold); padding:1px 6px; border-radius:4px; margin-bottom:0.35rem; }
+.det-card p { font-size:0.75rem; color:var(--muted); line-height:1.5; }
+.etag { display:inline-block; font-size:0.67rem; font-weight:600; padding:2px 7px; border-radius:20px; margin-top:0.45rem; }
+.ep { background:rgba(22,163,74,0.12); color:#16a34a; }
+.en { background:rgba(220,38,38,0.12); color:#dc2626; }
+.eb { background:rgba(240,180,41,0.15); color:#b45309; }
+
+.callout { display:flex; gap:0.8rem; padding:0.85rem 1.1rem; border-radius:10px; border-left:4px solid var(--gold); background:rgba(240,180,41,0.06); margin:1rem 0; }
+.callout p { font-size:0.81rem; line-height:1.6; }
+
+/* ─── GRAPH SECTION ─── */
+.graph-layout { display:grid; grid-template-columns:320px 1fr; gap:1.4rem; align-items:start; }
+@media(max-width:880px){ .graph-layout{grid-template-columns:1fr;} }
+
+.ctrl-panel { background:var(--card); border-radius:16px; border:2px solid var(--border); padding:1.3rem; }
+.ctrl-panel + .ctrl-panel { margin-top:1rem; }
+.cpanel-title { font-family:'Playfair Display',serif; font-size:0.98rem; color:var(--navy); margin-bottom:0.2rem; }
+.cpanel-sub { font-size:0.74rem; color:var(--muted); margin-bottom:1rem; line-height:1.5; }
+.ceteris { font-size:0.71rem; color:var(--muted); font-style:italic; padding:0.35rem 0.65rem; background:rgba(240,180,41,0.08); border-left:3px solid var(--gold); border-radius:0 5px 5px 0; margin-bottom:0.9rem; line-height:1.5; }
+
+.sl-block { margin-bottom:0.9rem; }
+.sl-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem; }
+.sl-row span:first-child { font-size:0.78rem; font-weight:600; color:var(--navy); }
+.sl-val { font-family:'DM Mono',monospace; font-size:0.8rem; font-weight:700; }
+.sv-red { color:var(--coral); }
+.sv-lav { color:var(--lav); }
+input[type=range] { width:100%; accent-color:var(--coral); cursor:pointer; }
+input[type=range].lav   { accent-color:var(--lav); }
+input[type=range].green { accent-color:#16a34a; }
+input[type=range].gold  { accent-color:var(--gold); }
+
+.abar-box { background:var(--navy); border-radius:9px; padding:0.65rem 0.9rem; display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:rgba(255,255,255,0.6); margin-top:0.8rem; }
+.abar-box strong { font-family:'DM Mono',monospace; color:var(--gold); font-size:1rem; }
+.abar-box .ftag { margin-left:auto; font-family:'DM Mono',monospace; font-size:0.68rem; color:rgba(255,255,255,0.38); }
+
+.info-box { margin-top:0.7rem; padding:0.75rem 1rem; border-radius:9px; border:2px solid var(--border); background:var(--bg); font-size:0.78rem; line-height:1.6; transition:all 0.22s; }
+.info-box.blue  { border-color:rgba(37,99,235,0.3); background:rgba(37,99,235,0.04); }
+.info-box.green { border-color:rgba(22,163,74,0.3);  background:rgba(22,163,74,0.04); }
+.info-box.red   { border-color:rgba(220,38,38,0.3);  background:rgba(220,38,38,0.04); }
+
+/* Canvas */
+.canvas-wrap { background:var(--card); border-radius:16px; border:2px solid var(--border); padding:1rem; }
+.canvas-wrap canvas { display:block; width:100%; border-radius:8px; background:#fafaf7; }
+
+/* Int cards */
+.int-row { display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; margin-top:0.9rem; }
+@media(max-width:560px){ .int-row{grid-template-columns:1fr;} }
+.int-card { background:var(--card); border-radius:12px; border:2px solid var(--border); padding:1rem 1.1rem; }
+.int-card h4 { font-family:'Playfair Display',serif; font-size:0.92rem; color:var(--navy); margin-bottom:0.45rem; }
+.int-fml { font-family:'DM Mono',monospace; font-size:0.79rem; background:var(--navy); color:var(--gold); padding:0.4rem 0.7rem; border-radius:6px; margin-bottom:0.45rem; display:block; }
+.int-calc { font-size:0.74rem; color:var(--muted); line-height:1.6; }
+.int-res { display:inline-block; font-weight:700; color:var(--coral); background:rgba(224,90,58,0.1); padding:1px 7px; border-radius:4px; margin-top:0.25rem; }
+
+/* INTERSECTIONS SECTION */
+.icalc-box { background:var(--card); border-radius:14px; border:2px solid var(--border); padding:1.4rem; margin-bottom:1.5rem; }
+.icalc-box h3 { font-family:'Playfair Display',serif; font-size:1.02rem; color:var(--navy); margin-bottom:0.25rem; }
+.icalc-box p { font-size:0.76rem; color:var(--muted); margin-bottom:1rem; }
+.calc-inputs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+@media(max-width:480px){ .calc-inputs{grid-template-columns:1fr;} }
+.calc-inputs label { font-size:0.76rem; font-weight:600; color:var(--navy); display:block; margin-bottom:0.35rem; }
+.calc-inputs input { width:100%; padding:0.5rem 0.75rem; border:2px solid var(--border); border-radius:8px; font-family:'DM Mono',monospace; font-size:0.88rem; background:var(--bg); color:var(--navy); outline:none; transition:border-color 0.2s; }
+.calc-inputs input:focus { border-color:var(--coral); }
+.calc-results { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+@media(max-width:480px){ .calc-results{grid-template-columns:1fr;} }
+.crc { border-radius:10px; padding:1rem; text-align:center; border:2px solid; }
+.crc.r { border-color:rgba(220,38,38,0.3); background:rgba(220,38,38,0.05); }
+.crc.v { border-color:rgba(22,163,74,0.3);  background:rgba(22,163,74,0.05); }
+.crc-lbl { font-size:0.67rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; margin-bottom:0.35rem; }
+.crc-lbl.r { color:#dc2626; } .crc-lbl.v { color:#16a34a; }
+.crc-val { font-family:'DM Mono',monospace; font-size:1.65rem; font-weight:700; }
+.crc-val.r { color:#dc2626; } .crc-val.v { color:#16a34a; }
+.crc-sub { font-size:0.69rem; color:var(--muted); margin-top:0.15rem; }
+
+canvas#intChart { display:block; width:100%; background:#fafaf7; border-radius:8px; border:1px solid var(--border); }
+
+@media(max-width:680px){ .header{padding:1.5rem 1rem 1.2rem;} .main{padding:1.2rem 1rem 3rem;} .fhero{padding:1.2rem;} .det-grid{grid-template-columns:1fr 1fr;} .ucn-badge{display:none;} }
+@media(max-width:420px){ .det-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-tag">Economía · Ingeniería Comercial · ECIEM UCN</div>
+    <h1>Determinantes de la <span>Demanda</span></h1>
+    <p>Modelo matemático, desplazamientos vs. movimientos sobre la curva, e intersecciones clave</p>
+    <div class="ucn-badge">Prof. Alberto Rojas C.</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="showSec('modelo',this)">📐 El Modelo</button>
+    <button class="nav-btn" onclick="showSec('determinantes',this)">🔍 Determinantes</button>
+    <button class="nav-btn" onclick="showSec('grafico',this)">📊 Curva Interactiva</button>
+    <button class="nav-btn" onclick="showSec('intersecciones',this)">🎯 Intersecciones</button>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- ══ MODELO ══ -->
+<div class="section active" id="section-modelo">
+  <h2 class="section-title">El <span>Modelo</span> de Demanda</h2>
+  <p class="section-desc">La cantidad demandada del bien x depende de múltiples variables. Aplicando <em>ceteris páribus</em> llegamos a la forma operativa con dos parámetros clave: Ā y b.</p>
+
+  <div class="fhero">
+    <h2>Función General</h2>
+    <div class="fmain">Q<sup>d</sup><sub>x</sub> = +k<span class="fv fv-I">I</span> + d<span class="fv fv-G">G</span> + j<span class="fv fv-py">p<sub>y</sub></span> − r<span class="fv fv-pz">p<sub>z</sub></span> − b<span class="fv fv-px">p<sub>x</sub></span></div>
+    <div class="fleg">
+      <div class="fleg-item"><div class="ldot" style="background:#5eead4"></div><b>I</b> — Ingreso (k &gt; 0)</div>
+      <div class="fleg-item"><div class="ldot" style="background:#a78bfa"></div><b>G</b> — Gustos y modas (d &gt; 0)</div>
+      <div class="fleg-item"><div class="ldot" style="background:#fcd34d"></div><b>p<sub>y</sub></b> — Precio bien sustituto (+j)</div>
+      <div class="fleg-item"><div class="ldot" style="background:#6ee7b7"></div><b>p<sub>z</sub></b> — Precio bien complementario (−r)</div>
+      <div class="fleg-item"><div class="ldot" style="background:#fca5a5"></div><b>p<sub>x</sub></b> — Precio del propio bien (−b)</div>
+    </div>
+  </div>
+
+  <div class="dist-row">
+    <div class="dist-card mv">
+      <div style="font-size:1.4rem;margin-bottom:0.45rem">↕️</div>
+      <div class="dist-tag">Movimiento sobre la curva</div>
+      <h3>Cambio en p<sub>x</sub></h3>
+      <p>Varía el precio del propio bien → nos movemos a lo largo de la misma curva. Ā permanece constante, la función <em>no</em> se desplaza.</p>
+    </div>
+    <div class="dist-card sh">
+      <div style="font-size:1.4rem;margin-bottom:0.45rem">↔️</div>
+      <div class="dist-tag">Desplazamiento de la curva</div>
+      <h3>Cambio en I, G, p<sub>y</sub> o p<sub>z</sub></h3>
+      <p>Varía cualquier otro determinante → toda la curva se traslada. Ā cambia y aparece una función completamente nueva.</p>
+    </div>
+  </div>
+
+  <div class="fhero" style="background:linear-gradient(135deg,#1a2744 60%,#2d3a5a)">
+    <h2>Forma Operativa (Ceteris Páribus)</h2>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.9rem;color:rgba(255,255,255,0.38);text-decoration:line-through;margin-bottom:0.4rem">Q<sup>d</sup><sub>x</sub> = kĪ + dḠ + j·p̄<sub>y</sub> − r·p̄<sub>z</sub> − b·p<sub>x</sub></div>
+        <div style="color:var(--gold);font-size:0.7rem;margin-bottom:0.45rem">↓ demás variables se fijan como constantes ↓</div>
+        <div class="fmain">Q<sup>d</sup><sub>x</sub> = <span class="fv fv-A">Ā</span> − b·<span class="fv fv-px">p<sub>x</sub></span></div>
+      </div>
+      <div style="flex:1;min-width:185px;padding:0.9rem;background:rgba(255,255,255,0.05);border-radius:10px;font-size:0.78rem;color:rgba(255,255,255,0.65);line-height:1.8">
+        <b style="color:var(--gold)">Ā</b> = kĪ + dḠ + j·p̄<sub>y</sub> − r·p̄<sub>z</sub><br>
+        &nbsp;&nbsp;→ constante autónoma<br>
+        <b style="color:#fca5a5">b</b> → sensibilidad al precio propio
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DETERMINANTES ══ -->
+<div class="section" id="section-determinantes">
+  <h2 class="section-title"><span>Determinantes</span> de la Demanda</h2>
+  <p class="section-desc">Cada determinante opera sobre Ā (desplaza la curva) o sobre b (cambia la pendiente). El precio del bien propio es la única excepción: solo mueve el punto sobre la curva existente.</p>
+
+  <div class="det-grid">
+    <div class="det-card" style="--ca:var(--mint)">
+      <div class="det-emoji">💰</div><div class="vbadge">I · Ingreso</div>
+      <h3>Ingreso del Consumidor</h3>
+      <p>Para bienes normales, mayor ingreso → mayor demanda. Para bienes inferiores la relación se invierte.</p>
+      <span class="etag eb">↑I → ↑Ā (normal) | ↓Ā (inferior)</span>
+    </div>
+    <div class="det-card" style="--ca:var(--lav)">
+      <div class="det-emoji">🎭</div><div class="vbadge">G · Gustos</div>
+      <h3>Gustos y Preferencias</h3>
+      <p>Campañas de marketing, tendencias y cambios culturales afectan la disposición a comprar.</p>
+      <span class="etag ep">↑G → ↑Ā (curva ↗)</span>
+    </div>
+    <div class="det-card" style="--ca:var(--gold)">
+      <div class="det-emoji">🔄</div><div class="vbadge">p<sub>y</sub> · Sustitutos</div>
+      <h3>Precio del Bien Sustituto</h3>
+      <p>Si sube el precio del sustituto (ej: Pepsi), el consumidor migra hacia el bien x (ej: Coca-Cola), aumentando su demanda.</p>
+      <span class="etag ep">↑p<sub>y</sub> → ↑Ā (coef. +j)</span>
+    </div>
+    <div class="det-card" style="--ca:var(--mint)">
+      <div class="det-emoji">🤝</div><div class="vbadge">p<sub>z</sub> · Complementarios</div>
+      <h3>Precio del Complementario</h3>
+      <p>Bienes que se consumen juntos (auto y bencina). Si sube p<sub>z</sub>, cae la demanda del bien x.</p>
+      <span class="etag en">↑p<sub>z</sub> → ↓Ā (coef. −r)</span>
+    </div>
+    <div class="det-card" style="--ca:var(--coral)">
+      <div class="det-emoji">🏪</div><div class="vbadge"># · Compradores</div>
+      <h3>Número de Compradores</h3>
+      <p>Más consumidores en el mercado implica mayor demanda total del bien x.</p>
+      <span class="etag ep">↑N → ↑Ā (curva ↗)</span>
+    </div>
+    <div class="det-card" style="--ca:var(--navy)">
+      <div class="det-emoji">🔮</div><div class="vbadge">E · Expectativas</div>
+      <h3>Expectativas Futuras</h3>
+      <p>Si se espera que el precio suba mañana, se compra más hoy. Las expectativas adelantan decisiones.</p>
+      <span class="etag eb">↑E(p futura) → ↑Ā hoy</span>
+    </div>
+  </div>
+
+  <div style="background:rgba(224,90,58,0.04);border:2px solid rgba(224,90,58,0.3);border-radius:14px;padding:1.2rem">
+    <div style="display:flex;gap:0.8rem;align-items:flex-start">
+      <span style="font-size:1.2rem;flex-shrink:0">⚠️</span>
+      <div>
+        <div style="font-weight:700;color:var(--navy);font-size:0.88rem;margin-bottom:0.35rem">El precio del bien (p<sub>x</sub>) es diferente</div>
+        <p style="font-size:0.78rem;color:var(--muted);line-height:1.6">No desplaza la curva: genera un <b>movimiento sobre la misma curva</b>. Cuando p<sub>x</sub> sube, la cantidad demandada baja moviéndose a lo largo de la función (Ā no cambia). Esta es la <b>Ley de la Demanda</b>.</p>
+        <span class="etag en" style="margin-top:0.5rem">↑p<sub>x</sub> → ↓Q (mismo Ā, distinto punto)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GRÁFICO ══ -->
+<div class="section" id="section-grafico">
+  <h2 class="section-title">Curva de Demanda <span>Interactiva</span></h2>
+  <p class="section-desc">Panel izquierdo: controla p<sub>x</sub> para moverse sobre la curva, o los determinantes para desplazarla. El gráfico responde en tiempo real.</p>
+
+  <div class="graph-layout">
+
+    <!-- CONTROLES -->
+    <div>
+      <div class="ctrl-panel">
+        <div class="cpanel-title">🎯 Precio del bien — p<sub>x</sub></div>
+        <div class="cpanel-sub">Mueve el punto sobre la curva sin desplazarla</div>
+        <div class="ceteris">Ceteris páribus: I, G, p<sub>y</sub>, p<sub>z</sub> fijos. Solo varía p<sub>x</sub>.</div>
+        <div class="sl-block">
+          <div class="sl-row">
+            <span>Precio p<sub>x</sub></span>
+            <span class="sl-val sv-red" id="pxDisplay">$40</span>
+          </div>
+          <input type="range" id="pxSlider" min="0" max="120" value="40" step="1" oninput="onPx()">
+        </div>
+        <div class="info-box blue" id="pxInfo">Con p<sub>x</sub> = $40 → Q<sup>d</sup><sub>x</sub> = <b id="pxQ">60</b> unidades</div>
+      </div>
+
+      <div class="ctrl-panel" style="margin-top:1rem">
+        <div class="cpanel-title">↔️ Determinantes no-precio</div>
+        <div class="cpanel-sub">Modifican Ā y desplazan toda la curva</div>
+        <div class="sl-block">
+          <div class="sl-row"><span>💰 Ingreso (I)</span><span class="sl-val sv-lav" id="vI">50</span></div>
+          <input type="range" class="lav" id="sI" min="0" max="100" value="50" step="5" oninput="onShift()">
+        </div>
+        <div class="sl-block">
+          <div class="sl-row"><span>🎭 Gustos (G)</span><span class="sl-val sv-lav" id="vG">50</span></div>
+          <input type="range" class="lav" id="sG" min="0" max="100" value="50" step="5" oninput="onShift()">
+        </div>
+        <div class="sl-block">
+          <div class="sl-row"><span>🔄 P. Sustituto p<sub>y</sub> <span style="color:var(--mint);font-size:0.7rem">(+)</span></span><span class="sl-val sv-lav" id="vPy">50</span></div>
+          <input type="range" class="green" id="sPy" min="0" max="100" value="50" step="5" oninput="onShift()">
+        </div>
+        <div class="sl-block">
+          <div class="sl-row"><span>🤝 P. Complement. p<sub>z</sub> <span style="color:var(--coral);font-size:0.7rem">(−)</span></span><span class="sl-val sv-lav" id="vPz">50</span></div>
+          <input type="range" class="gold" id="sPz" min="0" max="100" value="50" step="5" oninput="onShift()">
+        </div>
+        <div class="abar-box">
+          <span>Ā =</span><strong id="AbarVal">100</strong>
+          <span class="ftag" id="AbarFml">Q = 100 − 1·pₓ</span>
+        </div>
+        <div class="info-box blue" id="shiftInfo" style="margin-top:0.7rem">Curva en posición base. Mueve los sliders para desplazar la función.</div>
+      </div>
+    </div>
+
+    <!-- GRÁFICO + INT CARDS -->
+    <div>
+      <div class="canvas-wrap">
+        <canvas id="demandCanvas" height="530"></canvas>
+      </div>
+      <div class="int-row">
+        <div class="int-card">
+          <h4>🔴 Precio de Estrangulamiento</h4>
+          <span class="int-fml">p_max = Ā / b</span>
+          <div class="int-calc">
+            Precio al que Q<sup>d</sup> = 0.<br>
+            Ā = <span id="ic-A1">100</span>, b = 1<br>
+            <span class="int-res" id="ic-pmax">p_max = $100</span>
+          </div>
+        </div>
+        <div class="int-card">
+          <h4>🟢 Cantidad Máxima</h4>
+          <span class="int-fml">Q_max = Ā (p_x = 0)</span>
+          <div class="int-calc">
+            Cantidad cuando el precio es cero.<br>
+            Ā = <span id="ic-A2">100</span><br>
+            <span class="int-res" id="ic-qmax">Q_max = 100 uds.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ INTERSECCIONES ══ -->
+<div class="section" id="section-intersecciones">
+  <h2 class="section-title">Intersecciones <span>Clave</span></h2>
+  <p class="section-desc">Las intersecciones con los ejes tienen significado económico preciso. Ambas dependen de Ā y b, y se modifican cuando la curva se desplaza.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+    <div style="background:var(--card);border:2px solid rgba(220,38,38,0.3);border-radius:14px;padding:1.3rem">
+      <div style="font-size:1.7rem;margin-bottom:0.45rem">🔴</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--navy);margin-bottom:0.45rem">Precio de Estrangulamiento (p_max)</h3>
+      <div style="background:var(--navy);color:var(--gold);font-family:'DM Mono',monospace;padding:0.45rem 0.75rem;border-radius:6px;font-size:0.85rem;margin-bottom:0.7rem">p_max = Ā / b</div>
+      <p style="font-size:0.78rem;color:var(--muted);line-height:1.6;margin-bottom:0.7rem">Precio al cual Q = 0. Intersección con el <b>eje vertical</b>. Se obtiene igualando la función a cero: 0 = Ā − b·p → p = Ā/b.</p>
+      <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:7px;padding:0.65rem;font-size:0.76rem;line-height:1.6">Si ↑Ā → ↑p_max &nbsp;|&nbsp; Si ↑b → ↓p_max</div>
+    </div>
+    <div style="background:var(--card);border:2px solid rgba(22,163,74,0.3);border-radius:14px;padding:1.3rem">
+      <div style="font-size:1.7rem;margin-bottom:0.45rem">🟢</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--navy);margin-bottom:0.45rem">Cantidad Máxima (Q_max)</h3>
+      <div style="background:var(--navy);color:var(--gold);font-family:'DM Mono',monospace;padding:0.45rem 0.75rem;border-radius:6px;font-size:0.85rem;margin-bottom:0.7rem">Q_max = Ā &nbsp;(cuando p_x = 0)</div>
+      <p style="font-size:0.78rem;color:var(--muted);line-height:1.6;margin-bottom:0.7rem">Cantidad demandada si el bien fuera gratuito. Intersección con el <b>eje horizontal</b>. Q = Ā − b·0 = Ā.</p>
+      <div style="background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.2);border-radius:7px;padding:0.65rem;font-size:0.76rem;line-height:1.6">Si ↑Ā → ↑Q_max &nbsp;|&nbsp; Q_max no depende de b</div>
+    </div>
+  </div>
+  @media(max-width:560px){.int-explainer{grid-template-columns:1fr!important}}
+
+  <div class="icalc-box">
+    <h3>🧮 Calculadora de Intersecciones</h3>
+    <p>Ingresa los parámetros del modelo y obtén automáticamente ambas intersecciones graficadas.</p>
+    <div class="calc-inputs">
+      <div><label>Ā — Constante autónoma</label><input type="number" id="calcA" value="120" min="10" max="500" step="10" oninput="recalcInt()"></div>
+      <div><label>b — Sensibilidad al precio</label><input type="number" id="calcB" value="2" min="0.1" max="20" step="0.5" oninput="recalcInt()"></div>
+    </div>
+    <div class="calc-results">
+      <div class="crc r">
+        <div class="crc-lbl r">Precio Estrangulamiento</div>
+        <div class="crc-val r" id="res-pmax">$60</div>
+        <div class="crc-sub" id="res-pmax-sub">= 120 / 2</div>
+      </div>
+      <div class="crc v">
+        <div class="crc-lbl v">Cantidad Máxima</div>
+        <div class="crc-val v" id="res-qmax">120</div>
+        <div class="crc-sub" id="res-qmax-sub">= Ā con p = 0</div>
+      </div>
+    </div>
+    <canvas id="intChart" height="390"></canvas>
+  </div>
+
+  <div class="callout" style="border-color:var(--lav);background:rgba(124,111,205,0.05)">
+    <div style="font-size:1rem;flex-shrink:0;margin-top:2px">📐</div>
+    <p><b>Efecto de los desplazamientos:</b> Un aumento en Ā (↑I, ↑G, ↑p<sub>y</sub>, ↓p<sub>z</sub>) amplía <em>ambas</em> intersecciones: la curva se desplaza a la derecha, p_max sube y Q_max aumenta. Un aumento en b aplana la curva reduciendo p_max, sin afectar Q_max.</p>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* NAV */
+function showSec(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'grafico') requestAnimationFrame(renderDemand);
+  if (id === 'intersecciones') requestAnimationFrame(recalcInt);
+}
+
+/* STATE */
+const B = 1;
+let px = 40, A = 100;
+
+function computeA() {
+  const I=+document.getElementById('sI').value, G=+document.getElementById('sG').value;
+  const Py=+document.getElementById('sPy').value, Pz=+document.getElementById('sPz').value;
+  return Math.max(20, Math.round(100 + 0.4*(I-50) + 0.5*(G-50) + 0.3*(Py-50) - 0.4*(Pz-50)));
+}
+
+function onPx() {
+  px = +document.getElementById('pxSlider').value;
+  document.getElementById('pxDisplay').textContent = '$'+px;
+  const Q = Math.max(0, A - B*px), pm = A/B;
+  document.getElementById('pxQ').textContent = Math.round(Q);
+  const box = document.getElementById('pxInfo');
+  if (px >= pm) {
+    box.className = 'info-box red';
+    box.innerHTML = `⚠️ p<sub>x</sub> = $${px} ≥ p_max = $${Math.round(pm)} → <b>Q = 0</b> (precio de estrangulamiento)`;
+  } else {
+    box.className = 'info-box blue';
+    box.innerHTML = `Con p<sub>x</sub> = $${px} → Q<sup>d</sup><sub>x</sub> = <b>${Math.round(Q)}</b> unidades <span style="color:var(--muted)">(movimiento sobre la curva)</span>`;
+  }
+  updateIntCards(); renderDemand();
+}
+
+function onShift() {
+  ['I','G','Py','Pz'].forEach(k=>{
+    document.getElementById('v'+k).textContent = document.getElementById('s'+k).value;
+  });
+  A = computeA();
+  document.getElementById('AbarVal').textContent = A;
+  document.getElementById('AbarFml').textContent = `Q = ${A} − 1·pₓ`;
+  const box = document.getElementById('shiftInfo');
+  if (A === 100) {
+    box.className = 'info-box blue';
+    box.textContent = 'Curva en posición base (Ā = 100).';
+  } else {
+    const dir = A > 100 ? '↗ derecha (↑ demanda)' : '↙ izquierda (↓ demanda)';
+    box.className = A >= 100 ? 'info-box green' : 'info-box red';
+    box.innerHTML = `Curva desplazada ${dir}. Ā = <b>${A}</b>. Nueva p_max = $${A}, Q_max = ${A}.`;
+  }
+  updateIntCards(); renderDemand();
+}
+
+function updateIntCards() {
+  const pm = A/B;
+  document.getElementById('ic-A1').textContent = A;
+  document.getElementById('ic-A2').textContent = A;
+  document.getElementById('ic-pmax').textContent = `p_max = $${Math.round(pm)}`;
+  document.getElementById('ic-qmax').textContent = `Q_max = ${A} uds.`;
+}
+
+/* ── HELPERS ── */
+function rRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+function arrHead(ctx,x,y,angle,col){
+  ctx.fillStyle=col;ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-8,-4);ctx.lineTo(-8,4);ctx.closePath();ctx.fill();ctx.restore();
+}
+
+/* ── MAIN DEMAND CHART ── */
+function renderDemand() {
+  const canvas = document.getElementById('demandCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio||1;
+  const cW = canvas.offsetWidth, cH = canvas.offsetHeight||530;
+  canvas.width = cW*dpr; canvas.height = cH*dpr;
+  const ctx = canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const W=cW, H=cH;
+  const pad={top:44,right:54,bottom:62,left:72};
+  const gW=W-pad.left-pad.right, gH=H-pad.top-pad.bottom;
+
+  const pMax=A/B;
+  const xMax=Math.max(140,Math.ceil(pMax*1.22/20)*20);
+  const yMax=Math.max(140,Math.ceil(A*1.22/20)*20);
+  const tx=p=>pad.left+(p/xMax)*gW;
+  const ty=q=>pad.top+gH-(q/yMax)*gH;
+
+  /* bg */
+  ctx.fillStyle='#fafaf7'; ctx.fillRect(0,0,W,H);
+
+  /* grid */
+  ctx.strokeStyle='#ede8df'; ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){
+    ctx.beginPath();ctx.moveTo(pad.left+(i/6)*gW,pad.top);ctx.lineTo(pad.left+(i/6)*gW,pad.top+gH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad.left,pad.top+(i/6)*gH);ctx.lineTo(pad.left+gW,pad.top+(i/6)*gH);ctx.stroke();
+  }
+
+  /* D0 ghost if shifted */
+  if(A!==100){
+    const pm0=100/B;
+    ctx.beginPath();ctx.strokeStyle='rgba(37,99,235,0.18)';ctx.lineWidth=2;ctx.setLineDash([8,5]);
+    ctx.moveTo(tx(0),ty(100));
+    ctx.lineTo(tx(Math.min(pm0,xMax)),ty(Math.max(0,100-B*Math.min(pm0,xMax))));
+    ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(37,99,235,0.35)';ctx.font='italic 11px DM Sans,sans-serif';ctx.textAlign='left';
+    const lp0=pm0*0.18;
+    ctx.fillText('D₀ (base)',tx(lp0)+6,ty(100-B*lp0)-7);
+  }
+
+  /* demand line */
+  ctx.beginPath();ctx.strokeStyle='#2563eb';ctx.lineWidth=4;ctx.lineJoin='round';ctx.setLineDash([]);
+  ctx.moveTo(tx(0),ty(A));
+  ctx.lineTo(tx(Math.min(pMax,xMax)),ty(Math.max(0,A-B*Math.min(pMax,xMax))));
+  ctx.stroke();
+  /* D label */
+  const llp=pMax*0.2, llq=A-B*llp;
+  ctx.fillStyle='#2563eb';ctx.font='bold 15px Playfair Display,serif';ctx.textAlign='left';
+  ctx.fillText(A!==100?'D₁':'D₀',tx(llp)+10,ty(llq)-8);
+
+  /* formula watermark */
+  ctx.font='11px DM Mono,monospace';ctx.fillStyle='rgba(26,39,68,0.1)';ctx.textAlign='right';
+  ctx.fillText(`Q = ${A} − ${B}·pₓ`,pad.left+gW-6,pad.top+20);
+
+  /* ── pMax ── */
+  /* vertical dashed */
+  ctx.setLineDash([7,5]);ctx.strokeStyle='#dc2626';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(tx(pMax),ty(0));ctx.lineTo(tx(pMax),pad.top+gH);ctx.stroke();
+  ctx.setLineDash([]);
+  /* dot */
+  ctx.beginPath();ctx.arc(tx(pMax),ty(0),9,0,Math.PI*2);ctx.fillStyle='#dc2626';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+  /* label below axis */
+  ctx.font='bold 11px DM Mono,monospace';ctx.fillStyle='#dc2626';ctx.textAlign='center';
+  ctx.fillText(`p_max=$${Math.round(pMax)}`,tx(pMax),pad.top+gH+18);
+  /* annotation bubble */
+  const annX=tx(pMax)+13, annY=ty(0)-30;
+  if(annX+160<W){
+    ctx.fillStyle='rgba(220,38,38,0.07)';ctx.strokeStyle='rgba(220,38,38,0.28)';ctx.lineWidth=1;
+    rRect(ctx,annX-3,annY-2,162,40,6);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#dc2626';ctx.font='bold 10px DM Sans,sans-serif';ctx.textAlign='left';
+    ctx.fillText('Precio de estrangulamiento',annX+3,annY+12);
+    ctx.font='10px DM Mono,monospace';
+    ctx.fillText(`Q = 0  cuando  pₓ = $${Math.round(pMax)}`,annX+3,annY+26);
+  }
+
+  /* ── qMax ── */
+  ctx.setLineDash([7,5]);ctx.strokeStyle='#16a34a';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(tx(0),ty(A));ctx.lineTo(pad.left,ty(A));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(tx(0),ty(A),9,0,Math.PI*2);ctx.fillStyle='#16a34a';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+  ctx.font='bold 11px DM Mono,monospace';ctx.fillStyle='#16a34a';ctx.textAlign='right';
+  ctx.fillText(`Q_max=${A}`,pad.left-6,ty(A)-11);
+  /* annotation */
+  const qannX=pad.left+12, qannY=ty(A)+16;
+  if(qannY+28<H-pad.bottom){
+    ctx.fillStyle='rgba(22,163,74,0.07)';ctx.strokeStyle='rgba(22,163,74,0.28)';ctx.lineWidth=1;
+    rRect(ctx,qannX-3,qannY-2,148,38,6);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#16a34a';ctx.font='bold 10px DM Sans,sans-serif';ctx.textAlign='left';
+    ctx.fillText('Cantidad máxima',qannX+3,qannY+12);
+    ctx.font='10px DM Mono,monospace';
+    ctx.fillText(`Q = ${A}  cuando  pₓ = $0`,qannX+3,qannY+26);
+  }
+
+  /* ── current point ── */
+  const curQ=Math.max(0,A-B*px);
+  if(px<pMax){
+    /* crosshair */
+    ctx.setLineDash([4,3]);ctx.strokeStyle='rgba(240,180,41,0.65)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(tx(px),ty(curQ));ctx.lineTo(tx(px),pad.top+gH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(tx(px),ty(curQ));ctx.lineTo(pad.left,ty(curQ));ctx.stroke();
+    ctx.setLineDash([]);
+    /* axis tick for current */
+    ctx.font='bold 11px DM Mono,monospace';ctx.fillStyle='#c98a00';ctx.textAlign='center';
+    ctx.fillText('$'+px,tx(px),pad.top+gH+32);
+    ctx.textAlign='right';ctx.fillText(Math.round(curQ),pad.left-9,ty(curQ)+4);
+    /* point */
+    ctx.beginPath();ctx.arc(tx(px),ty(curQ),11,0,Math.PI*2);ctx.fillStyle='#f0b429';ctx.fill();
+    ctx.strokeStyle='#1a2744';ctx.lineWidth=2.5;ctx.stroke();
+    /* bubble */
+    const bub=`($${px}, ${Math.round(curQ)})`;
+    ctx.font='bold 11px DM Sans,sans-serif';
+    const bw=ctx.measureText(bub).width+18;
+    const bx=Math.min(tx(px)+16,W-pad.right-bw);
+    const by=ty(curQ)-24;
+    ctx.fillStyle='#1a2744';rRect(ctx,bx,by,bw,22,5);ctx.fill();
+    ctx.fillStyle='#f0b429';ctx.textAlign='left';ctx.fillText(bub,bx+9,by+15);
+  }
+
+  /* ── AXES ── */
+  ctx.strokeStyle='#1a2744';ctx.lineWidth=2.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(pad.left,pad.top-12);ctx.lineTo(pad.left,pad.top+gH+10);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad.left-10,pad.top+gH);ctx.lineTo(pad.left+gW+12,pad.top+gH);ctx.stroke();
+  arrHead(ctx,pad.left,pad.top-4,  -Math.PI/2,'#1a2744');
+  arrHead(ctx,pad.left+gW+8,pad.top+gH,0,'#1a2744');
+
+  /* tick marks + labels */
+  ctx.fillStyle='#aaa';ctx.lineWidth=1;ctx.font='10px DM Mono,monospace';
+  for(let i=1;i<=6;i++){
+    const pv=Math.round((i/6)*xMax), qv=Math.round((i/6)*yMax);
+    ctx.strokeStyle='#c8c2b8';
+    ctx.beginPath();ctx.moveTo(tx(pv),pad.top+gH);ctx.lineTo(tx(pv),pad.top+gH+5);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad.left,ty(qv));ctx.lineTo(pad.left-5,ty(qv));ctx.stroke();
+    ctx.fillStyle='#9ca3af';ctx.textAlign='center';ctx.fillText(pv,tx(pv),pad.top+gH+16);
+    ctx.textAlign='right';ctx.fillText(qv,pad.left-9,ty(qv)+4);
+  }
+
+  /* axis labels */
+  ctx.fillStyle='#1a2744';ctx.font='bold 12px DM Sans,sans-serif';
+  ctx.textAlign='center';ctx.fillText('Precio  pₓ',pad.left+gW/2,H-8);
+  ctx.save();ctx.translate(17,pad.top+gH/2);ctx.rotate(-Math.PI/2);ctx.fillText('Cantidad  Q ͩˣ',0,0);ctx.restore();
+}
+
+/* ── INT CHART ── */
+function recalcInt(){
+  const Av=+document.getElementById('calcA').value||120;
+  const bv=+document.getElementById('calcB').value||2;
+  const pm=Av/bv, qm=Av;
+  document.getElementById('res-pmax').textContent='$'+pm.toFixed(1);
+  document.getElementById('res-qmax').textContent=qm;
+  document.getElementById('res-pmax-sub').textContent=`= ${Av} / ${bv}`;
+  document.getElementById('res-qmax-sub').textContent=`= Ā con p = 0`;
+  drawIntChart(Av,bv,pm,qm);
+}
+
+function drawIntChart(Av,bv,pm,qm){
+  const canvas=document.getElementById('intChart');
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const cW=canvas.offsetWidth, cH=390;
+  canvas.width=cW*dpr;canvas.height=cH*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const W=cW,H=cH;
+  const pad={top:38,right:54,bottom:54,left:70};
+  const gW=W-pad.left-pad.right,gH=H-pad.top-pad.bottom;
+  const xMax=Math.max(140,Math.ceil(pm*1.3/20)*20);
+  const yMax=Math.max(140,Math.ceil(qm*1.3/20)*20);
+  const tx=p=>pad.left+(p/xMax)*gW;
+  const ty=q=>pad.top+gH-(q/yMax)*gH;
+
+  ctx.fillStyle='#fafaf7';ctx.fillRect(0,0,W,H);
+
+  /* triangle shade */
+  ctx.beginPath();ctx.moveTo(tx(0),ty(qm));ctx.lineTo(tx(pm),ty(0));
+  ctx.lineTo(tx(pm),pad.top+gH);ctx.lineTo(tx(0),pad.top+gH);ctx.closePath();
+  ctx.fillStyle='rgba(37,99,235,0.05)';ctx.fill();
+
+  /* grid */
+  ctx.strokeStyle='#ede8df';ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    ctx.beginPath();ctx.moveTo(pad.left+(i/5)*gW,pad.top);ctx.lineTo(pad.left+(i/5)*gW,pad.top+gH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad.left,pad.top+(i/5)*gH);ctx.lineTo(pad.left+gW,pad.top+(i/5)*gH);ctx.stroke();
+  }
+
+  /* demand */
+  ctx.beginPath();ctx.strokeStyle='#2563eb';ctx.lineWidth=3.5;ctx.setLineDash([]);
+  ctx.moveTo(tx(0),ty(qm));ctx.lineTo(tx(Math.min(pm,xMax)),ty(Math.max(0,qm-bv*Math.min(pm,xMax))));ctx.stroke();
+  ctx.fillStyle='#2563eb';ctx.font='bold 12px DM Sans,sans-serif';ctx.textAlign='left';
+  ctx.fillText(`D: Q = ${Av} − ${bv}·p`,tx(pm*0.04)+4,ty(qm*0.87));
+
+  /* pMax */
+  ctx.setLineDash([7,5]);ctx.strokeStyle='#dc2626';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(tx(pm),ty(0));ctx.lineTo(tx(pm),pad.top+gH);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(tx(pm),ty(0),8,0,Math.PI*2);ctx.fillStyle='#dc2626';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#dc2626';ctx.font='bold 10px DM Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('p_max=$'+pm.toFixed(1),tx(pm),pad.top+gH+18);
+  ctx.font='10px DM Sans,sans-serif';ctx.textAlign='left';
+  ctx.fillText('← p estrangulamiento',tx(pm)+11,ty(0)-6);
+
+  /* qMax */
+  ctx.setLineDash([7,5]);ctx.strokeStyle='#16a34a';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(tx(0),ty(qm));ctx.lineTo(pad.left,ty(qm));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(tx(0),ty(qm),8,0,Math.PI*2);ctx.fillStyle='#16a34a';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#16a34a';ctx.font='bold 10px DM Mono,monospace';ctx.textAlign='right';
+  ctx.fillText('Q_max='+qm,pad.left-5,ty(qm)-11);
+  ctx.font='10px DM Sans,sans-serif';ctx.textAlign='left';
+  ctx.fillText('Q máxima →',pad.left+8,ty(qm)+14);
+
+  /* axes */
+  ctx.strokeStyle='#1a2744';ctx.lineWidth=2.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(pad.left,pad.top-10);ctx.lineTo(pad.left,pad.top+gH+8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad.left-8,pad.top+gH);ctx.lineTo(pad.left+gW+10,pad.top+gH);ctx.stroke();
+  arrHead(ctx,pad.left,pad.top-2,-Math.PI/2,'#1a2744');
+  arrHead(ctx,pad.left+gW+6,pad.top+gH,0,'#1a2744');
+
+  ctx.fillStyle='#1a2744';ctx.font='bold 11px DM Sans,sans-serif';
+  ctx.textAlign='center';ctx.fillText('Precio pₓ',pad.left+gW/2,H-9);
+  ctx.save();ctx.translate(16,pad.top+gH/2);ctx.rotate(-Math.PI/2);ctx.fillText('Cantidad Qˣᵈ',0,0);ctx.restore();
+
+  ctx.fillStyle='#9ca3af';ctx.font='10px DM Mono,monospace';
+  for(let i=1;i<=5;i++){
+    const pv=Math.round((i/5)*xMax),qv=Math.round((i/5)*yMax);
+    ctx.textAlign='center';ctx.fillText(pv,tx(pv),pad.top+gH+15);
+    ctx.textAlign='right';ctx.fillText(qv,pad.left-8,ty(qv)+4);
+  }
+}
+
+/* INIT */
+window.addEventListener('load',()=>{ renderDemand(); recalcInt(); });
+window.addEventListener('resize',()=>{
+  if(document.getElementById('section-grafico').classList.contains('active')) renderDemand();
+  if(document.getElementById('section-intersecciones').classList.contains('active')) recalcInt();
+});
+</script>
+</body>
+</html>
