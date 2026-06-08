@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo Interactivo del Producto Interno Bruto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .input-cell {
+            width: 100%;
+            min-width: 60px;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            text-align: right;
+            font-size: 0.875rem;
+        }
+        .input-cell:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #bfdbfe;
+        }
+        .input-cell.base-year {
+            background-color: #f0fdf4;
+            border-color: #86efac;
+            font-weight: 600;
+        }
+        .result-box {
+            transition: all 0.3s ease;
+        }
+        .result-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Ocultar flechas en inputs de número */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800">PIB Nominal frente a PIB Real</h1>
+            <p class="text-slate-600 text-lg">Modelo Analítico de Cuentas Nacionales (2020-2025)</p>
+        </header>
+
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-slate-800">Serie Temporal de Producción y Precios</h2>
+                    <p class="text-sm text-slate-500 mt-1">Modifique las variables en la matriz para reestimar los agregados macroeconómicos.</p>
+                </div>
+                <div class="flex items-center space-x-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <label for="base-year-select" class="text-sm font-medium text-slate-700">Año Base:</label>
+                    <select id="base-year-select" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2" onchange="changeBaseYear()">
+                        <!-- Se llena con JS -->
+                    </select>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-800 border-b border-slate-200">
+                            <th class="p-3 font-semibold text-center align-middle" rowspan="2">Año</th>
+                            <th class="p-2 border-l border-slate-200 font-semibold text-center" colspan="2">Computadores</th>
+                            <th class="p-2 border-l border-slate-200 font-semibold text-center" colspan="2">Teléfonos</th>
+                            <th class="p-2 border-l border-slate-200 font-semibold text-center" colspan="2">Tablets</th>
+                            <th class="p-2 border-l border-slate-200 font-semibold text-center bg-blue-50 text-blue-900" colspan="3">Agregados Macroeconómicos</th>
+                        </tr>
+                        <tr class="bg-slate-50 text-slate-600 text-xs tracking-wide">
+                            <th class="p-2 border-l border-slate-200 border-b text-center">Precio ($)</th>
+                            <th class="p-2 border-b text-center">Cantidad</th>
+                            <th class="p-2 border-l border-slate-200 border-b text-center">Precio ($)</th>
+                            <th class="p-2 border-b text-center">Cantidad</th>
+                            <th class="p-2 border-l border-slate-200 border-b text-center">Precio ($)</th>
+                            <th class="p-2 border-b text-center">Cantidad</th>
+                            <th class="p-2 border-l border-slate-200 border-b text-right bg-blue-50">PIB Nominal</th>
+                            <th class="p-2 border-b text-right bg-blue-50">PIB Real</th>
+                            <th class="p-2 border-b text-right bg-blue-50">Crecimiento (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table" class="bg-white divide-y divide-slate-200 text-sm">
+                        <!-- Las filas se generan dinámicamente vía JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-xs text-slate-500 text-right">
+                La tasa de crecimiento se calcula respecto al período inmediatamente anterior (crecimiento interanual).
+            </div>
+        </section>
+
+        <section class="bg-slate-800 p-6 rounded-xl shadow-md border border-slate-700 text-white">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Análisis Detallado por Período</h2>
+                <div class="flex items-center mt-3 md:mt-0 space-x-3">
+                    <label for="analysis-year-select" class="text-sm font-medium text-slate-300">Seleccionar Año de Estudio:</label>
+                    <select id="analysis-year-select" class="bg-slate-700 border border-slate-600 text-white text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2" onchange="updateAnalysisCard()">
+                        <!-- Se llena con JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-slate-700/50 p-5 rounded-lg border border-slate-600">
+                    <div class="text-slate-400 text-sm font-medium mb-1">PIB Nominal</div>
+                    <div class="text-3xl font-bold text-white mb-2" id="card-nom">$0</div>
+                    <div class="text-xs text-slate-400 font-mono" id="card-form-nom"></div>
+                </div>
+
+                <div class="bg-emerald-900/30 p-5 rounded-lg border border-emerald-800/50">
+                    <div class="text-emerald-400 text-sm font-medium mb-1">PIB Real (Base <span id="card-base-label"></span>)</div>
+                    <div class="text-3xl font-bold text-emerald-50 mb-2" id="card-real">$0</div>
+                    <div class="text-xs text-emerald-400/70 font-mono" id="card-form-real"></div>
+                </div>
+
+                <div class="bg-blue-900/30 p-5 rounded-lg border border-blue-800/50">
+                    <div class="text-blue-400 text-sm font-medium mb-1">Crecimiento Económico</div>
+                    <div class="text-3xl font-bold text-blue-50 mb-2" id="card-growth">0%</div>
+                    <div class="text-xs text-blue-400/70 font-mono" id="card-form-growth"></div>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-5 border-t border-slate-700">
+                <p class="text-sm text-slate-300 leading-relaxed text-justify">
+                    <strong>Nota metodológica:</strong> El cálculo de la tasa de crecimiento económico se sustenta exclusivamente en la evolución del PIB Real. Si se utilizara el PIB Nominal para este propósito, la métrica resultante para el año seleccionado ascendería a <span id="card-false-growth" class="font-semibold text-white">0%</span>. Dicho valor incorpora la variación del nivel de precios, por lo cual su uso metodológico resulta inadecuado para cuantificar expansiones en el volumen físico de producción de la economía.
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // Configuración inicial
+        const startYear = 2020;
+        const endYear = 2025;
+        let baseYear = 2020;
+        let analysisYear = 2021;
+        let econData = [];
+
+        // Inicialización de la serie temporal empírica
+        function initData() {
+            econData = [];
+            for (let year = startYear; year <= endYear; year++) {
+                let t = year - startYear;
+                // Progresión teórica de precios y cantidades
+                econData.push({
+                    year: year,
+                    p1: 500 + (t * 20), q1: 10 + (t * 2), // Computadores
+                    p2: 200 + (t * 15), q2: 30 + (t * 4), // Teléfonos
+                    p3: 300 + (t * 10), q3: 15 + (t * 3)  // Tablets
+                });
+            }
+        }
+
+        // Formato de divisas y porcentajes
+        const formatMoney = (num) => '$' + num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        const formatPercent = (num) => num.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+
+        // Llenar selectores
+        function populateSelectors() {
+            const baseSelect = document.getElementById('base-year-select');
+            const analysisSelect = document.getElementById('analysis-year-select');
+            
+            baseSelect.innerHTML = '';
+            analysisSelect.innerHTML = '';
+
+            for (let y = startYear; y <= endYear; y++) {
+                baseSelect.options.add(new Option(y, y));
+                if (y > startYear) { // Excluir el primer año del análisis de crecimiento interanual
+                    analysisSelect.options.add(new Option(y, y));
+                }
+            }
+            baseSelect.value = baseYear;
+            analysisSelect.value = analysisYear;
+        }
+
+        function changeBaseYear() {
+            baseYear = parseInt(document.getElementById('base-year-select').value);
+            renderTable();
+        }
+
+        function updateData(year, field, value) {
+            const row = econData.find(d => d.year === year);
+            if (row) {
+                row[field] = parseFloat(value) || 0;
+                renderTable(); // Recalcula y renderiza
+            }
+        }
+
+        // Ejecución de cálculos matriciales
+        function calculateAggregates() {
+            const baseRow = econData.find(d => d.year === baseYear);
+            const bp1 = baseRow.p1, bp2 = baseRow.p2, bp3 = baseRow.p3;
+
+            for (let i = 0; i < econData.length; i++) {
+                let d = econData[i];
+                
+                // PIB Nominal: Precios corrientes x Cantidades corrientes
+                d.pibNom = (d.p1 * d.q1) + (d.p2 * d.q2) + (d.p3 * d.q3);
+                
+                // PIB Real: Precios constantes (año base) x Cantidades corrientes
+                d.pibReal = (bp1 * d.q1) + (bp2 * d.q2) + (bp3 * d.q3);
+
+                // Crecimientos interanuales
+                if (i === 0) {
+                    d.growthReal = 0;
+                    d.growthNom = 0;
+                } else {
+                    let prevReal = econData[i-1].pibReal;
+                    let prevNom = econData[i-1].pibNom;
+                    
+                    d.growthReal = prevReal > 0 ? ((d.pibReal - prevReal) / prevReal) * 100 : 0;
+                    d.growthNom = prevNom > 0 ? ((d.pibNom - prevNom) / prevNom) * 100 : 0;
+                }
+            }
+        }
+
+        function renderTable() {
+            calculateAggregates();
+            const tbody = document.getElementById('data-table');
+            tbody.innerHTML = '';
+
+            econData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors duration-150";
+                
+                const isBase = row.year === baseYear;
+                const baseClass = isBase ? 'base-year' : '';
+                const pClass = `input-cell ${baseClass}`;
+
+                tr.innerHTML = `
+                    <td class="p-3 text-center font-semibold text-slate-700 bg-slate-50 border-r border-slate-200">
+                        ${row.year} ${isBase ? '<span class="text-[10px] block text-emerald-600 font-normal">Base</span>' : ''}
+                    </td>
+                    <td class="p-2 border-l border-slate-200"><input type="number" class="${pClass}" value="${row.p1}" onchange="updateData(${row.year}, 'p1', this.value)"></td>
+                    <td class="p-2"><input type="number" class="input-cell" value="${row.q1}" onchange="updateData(${row.year}, 'q1', this.value)"></td>
+                    <td class="p-2 border-l border-slate-200"><input type="number" class="${pClass}" value="${row.p2}" onchange="updateData(${row.year}, 'p2', this.value)"></td>
+                    <td class="p-2"><input type="number" class="input-cell" value="${row.q2}" onchange="updateData(${row.year}, 'q2', this.value)"></td>
+                    <td class="p-2 border-l border-slate-200"><input type="number" class="${pClass}" value="${row.p3}" onchange="updateData(${row.year}, 'p3', this.value)"></td>
+                    <td class="p-2"><input type="number" class="input-cell" value="${row.q3}" onchange="updateData(${row.year}, 'q3', this.value)"></td>
+                    <td class="p-3 border-l border-slate-200 text-right font-medium text-slate-800 bg-slate-50">${formatMoney(row.pibNom)}</td>
+                    <td class="p-3 text-right font-medium text-emerald-700 bg-emerald-50/30">${formatMoney(row.pibReal)}</td>
+                    <td class="p-3 text-right font-bold ${row.growthReal < 0 ? 'text-red-600' : 'text-blue-600'} bg-blue-50/30">
+                        ${index === 0 ? '-' : formatPercent(row.growthReal)}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateAnalysisCard();
+        }
+
+        function updateAnalysisCard() {
+            analysisYear = parseInt(document.getElementById('analysis-year-select').value);
+            const d = econData.find(r => r.year === analysisYear);
+            const prev = econData.find(r => r.year === analysisYear - 1);
+            const base = econData.find(r => r.year === baseYear);
+
+            if (!d || !prev || !base) return;
+
+            document.getElementById('card-base-label').innerText = baseYear;
+            
+            // Tarjeta Nominal
+            document.getElementById('card-nom').innerText = formatMoney(d.pibNom);
+            document.getElementById('card-form-nom').innerText = 
+                `(${d.p1}×${d.q1}) + (${d.p2}×${d.q2}) + (${d.p3}×${d.q3})`;
+
+            // Tarjeta Real
+            document.getElementById('card-real').innerText = formatMoney(d.pibReal);
+            document.getElementById('card-form-real').innerText = 
+                `(${base.p1}×${d.q1}) + (${base.p2}×${d.q2}) + (${base.p3}×${d.q3})`;
+
+            // Tarjeta Crecimiento
+            const growthElem = document.getElementById('card-growth');
+            growthElem.innerText = formatPercent(d.growthReal);
+            growthElem.className = `text-3xl font-bold mb-2 ${d.growthReal < 0 ? 'text-red-400' : 'text-blue-50'}`;
+            document.getElementById('card-form-growth').innerText = 
+                `((${formatMoney(d.pibReal)} - ${formatMoney(prev.pibReal)}) / ${formatMoney(prev.pibReal)}) × 100`;
+
+            // Nota Metodológica
+            document.getElementById('card-false-growth').innerText = formatPercent(d.growthNom);
+        }
+
+        // Inicializar aplicación
+        window.onload = () => {
+            initData();
+            populateSelectors();
+            renderTable();
+        };
+    </script>
+</body>
+</html>
