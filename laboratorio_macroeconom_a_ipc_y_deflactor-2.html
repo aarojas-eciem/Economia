@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Macroeconomía: IPC (Metodología INE) y Deflactor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        .academic-text {
+            font-family: 'Lora', serif;
+            line-height: 1.7;
+            text-align: justify;
+        }
+
+        .formula-box {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.25rem;
+            background: linear-gradient(to right, #ffffff, #f1f5f9);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item-row {
+            transition: all 0.2s ease;
+        }
+        
+        .item-row:hover {
+            background-color: #eff6ff;
+            transform: scale(1.005);
+        }
+
+        .chart-segment {
+            transition: width 1s ease-in-out, opacity 0.3s;
+            cursor: pointer;
+        }
+        
+        .chart-segment:hover {
+            opacity: 0.8;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .chart-segment:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        
+        <!-- Cabecera -->
+        <header class="bg-slate-900 text-white p-8">
+            <h1 class="text-3xl font-bold mb-2">Análisis Estructural de Precios</h1>
+            <h2 class="text-lg text-slate-300 font-light">Metodología Ponderada y Cuentas Nacionales (Aplicación MacroLandia)</h2>
+        </header>
+
+        <!-- Navegación por Pestañas -->
+        <nav class="flex flex-wrap border-b border-slate-200 bg-slate-50">
+            <button onclick="openTab('contexto')" id="btn-contexto" class="tab-btn flex-1 py-4 px-6 text-sm font-medium text-blue-600 border-b-2 border-blue-600 bg-white focus:outline-none transition-colors">
+                1. Contexto Metodológico
+            </button>
+            <button onclick="openTab('gasto')" id="btn-gasto" class="tab-btn flex-1 py-4 px-6 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors">
+                2. Estimación Gasto Base
+            </button>
+            <button onclick="openTab('ponderadores')" id="btn-ponderadores" class="tab-btn flex-1 py-4 px-6 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors">
+                3. Estructura de Ponderadores
+            </button>
+            <button onclick="openTab('comparativo')" id="btn-comparativo" class="tab-btn flex-1 py-4 px-6 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors">
+                4. Divergencia IPC vs Deflactor
+            </button>
+            <button onclick="openTab('resolucion')" id="btn-resolucion" class="tab-btn flex-1 py-4 px-6 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors">
+                5. Resolución Empírica
+            </button>
+        </nav>
+
+        <div class="p-8">
+            
+            <!-- Pestaña 1: Contexto -->
+            <div id="contexto" class="tab-content active academic-text text-slate-700">
+                <p class="mb-6 text-lg">El presente instrumento expone la diferenciación conceptual y metodológica en la estimación de dos indicadores macroeconómicos fundamentales para el análisis de inflación.</p>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-6">
+                    <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <h3 class="text-xl font-bold text-slate-800 mb-3 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            Índice de Precios al Consumidor (IPC)
+                        </h3>
+                        <p class="mb-4 text-sm">La metodología oficial estima el IPC mediante la agregación de las variaciones de precios de cada artículo, ponderadas por la participación de dicho artículo en el gasto total de la canasta base. El índice evalúa el costo de la vida, por lo que <strong>incluye bienes importados</strong>.</p>
+                        <div class="formula-box p-4 rounded text-center">
+                            <i>IPC<sub>t</sub> = &sum; [ W<sub>i,0</sub> &times; ( P<sub>i,t</sub> / P<sub>i,0</sub> ) ] &times; 100</i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                        <h3 class="text-xl font-bold text-slate-800 mb-3 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+                            Deflactor del PIB
+                        </h3>
+                        <p class="mb-4 text-sm">Es un índice que refleja la variación de precios de todos los bienes y servicios producidos internamente en un período específico. Su cálculo requiere la <strong>exclusión explícita de los bienes importados</strong>, dado que el PIB contabiliza únicamente la producción doméstica.</p>
+                        <div class="formula-box p-4 rounded text-center">
+                            <i>Deflactor<sub>t</sub> = ( PIB Nominal<sub>t</sub> / PIB Real<sub>t</sub> ) &times; 100</i>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button onclick="openTab('gasto')" class="bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition font-sans">Siguiente Paso &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Pestaña 2: Gasto Base -->
+            <div id="gasto" class="tab-content text-slate-700">
+                <div class="mb-6 academic-text">
+                    <p>Para aplicar la metodología de ponderadores del IPC, se determina inicialmente el gasto total de la familia representativa en el año base (2008). Esto requiere la multiplicación del precio base por la cantidad consumida base para cada componente de la canasta.</p>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-200 mb-6">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">Bien / Servicio</th>
+                                <th class="px-6 py-4">Origen</th>
+                                <th class="px-6 py-4 text-right">Precio 2008 (P₀)</th>
+                                <th class="px-6 py-4 text-right">Cantidad 2008 (Q₀)</th>
+                                <th class="px-6 py-4 text-right bg-blue-50 text-blue-800">Gasto Total (P₀ × Q₀)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <tr class="item-row bg-white">
+                                <td class="px-6 py-4 font-medium">Pan</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Nacional</span></td>
+                                <td class="px-6 py-4 text-right">$850</td>
+                                <td class="px-6 py-4 text-right">25.000</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-800 bg-blue-50/30">$21.250.000</td>
+                            </tr>
+                            <tr class="item-row bg-white">
+                                <td class="px-6 py-4 font-medium">Café</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Nacional</span></td>
+                                <td class="px-6 py-4 text-right">$8.000</td>
+                                <td class="px-6 py-4 text-right">1.200</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-800 bg-blue-50/30">$9.600.000</td>
+                            </tr>
+                            <tr class="item-row bg-white">
+                                <td class="px-6 py-4 font-medium">Vestuario</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Nacional</span></td>
+                                <td class="px-6 py-4 text-right">$6.000</td>
+                                <td class="px-6 py-4 text-right">600</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-800 bg-blue-50/30">$3.600.000</td>
+                            </tr>
+                            <tr class="item-row bg-white">
+                                <td class="px-6 py-4 font-medium">Internet</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Nacional</span></td>
+                                <td class="px-6 py-4 text-right">$12.000</td>
+                                <td class="px-6 py-4 text-right">600</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-800 bg-blue-50/30">$7.200.000</td>
+                            </tr>
+                            <tr class="item-row bg-white">
+                                <td class="px-6 py-4 font-medium">Bicicletas</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Nacional</span></td>
+                                <td class="px-6 py-4 text-right">$80.000</td>
+                                <td class="px-6 py-4 text-right">500</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-800 bg-blue-50/30">$40.000.000</td>
+                            </tr>
+                            <tr class="item-row bg-white">
+                                <td class="px-6 py-4 font-medium">Leche</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">Importado</span></td>
+                                <td class="px-6 py-4 text-right">$550</td>
+                                <td class="px-6 py-4 text-right">2.000</td>
+                                <td class="px-6 py-4 text-right font-semibold text-slate-800 bg-blue-50/30">$1.100.000</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-slate-800 text-white">
+                            <tr>
+                                <th colspan="4" class="px-6 py-4 text-right text-base">Gasto Total Canasta Base (GT₀)</th>
+                                <th class="px-6 py-4 text-right text-base">$82.750.000</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="flex justify-between">
+                    <button onclick="openTab('contexto')" class="text-slate-500 hover:text-slate-800 transition font-sans">&larr; Anterior</button>
+                    <button onclick="openTab('ponderadores')" class="bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition font-sans">Siguiente Paso &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Pestaña 3: Ponderadores -->
+            <div id="ponderadores" class="tab-content text-slate-700">
+                <div class="mb-6 academic-text">
+                    <p>La estructura de ponderaciones (W<sub>i,0</sub>) refleja la importancia relativa de cada bien. Se obtiene dividiendo el gasto base de cada artículo por el gasto total de la canasta base ($82.750.000). Esta proporción permanece fija durante la vigencia del año base establecido por el instituto estadístico.</p>
+                </div>
+
+                <!-- Visualización Gráfica (Barra horizontal) -->
+                <div class="mb-8 p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <h4 class="text-sm font-semibold uppercase text-slate-500 mb-4 tracking-wider">Composición de la Canasta Base (Visualización de Ponderadores)</h4>
+                    <div class="w-full flex h-10 rounded-lg overflow-hidden shadow-inner bg-slate-100 relative">
+                        <!-- Bicicletas -->
+                        <div class="chart-segment bg-indigo-500 relative flex items-center justify-center text-xs text-white font-medium" style="width: 48.34%">
+                            48.3%
+                            <span class="tooltip">Bicicletas: 48.34%</span>
+                        </div>
+                        <!-- Pan -->
+                        <div class="chart-segment bg-amber-500 relative flex items-center justify-center text-xs text-white font-medium" style="width: 25.68%">
+                            25.7%
+                            <span class="tooltip">Pan: 25.68%</span>
+                        </div>
+                        <!-- Cafe -->
+                        <div class="chart-segment bg-emerald-600 relative flex items-center justify-center text-xs text-white font-medium" style="width: 11.60%">
+                            11.6%
+                            <span class="tooltip">Café: 11.60%</span>
+                        </div>
+                        <!-- Internet -->
+                        <div class="chart-segment bg-cyan-500 relative flex items-center justify-center text-xs text-white font-medium" style="width: 8.70%">
+                            8.7%
+                            <span class="tooltip">Internet: 8.70%</span>
+                        </div>
+                        <!-- Vestuario -->
+                        <div class="chart-segment bg-rose-500 relative flex items-center justify-center text-xs text-white font-medium" style="width: 4.35%">
+                            4.3%
+                            <span class="tooltip">Vestuario: 4.35%</span>
+                        </div>
+                        <!-- Leche -->
+                        <div class="chart-segment bg-slate-400 relative flex items-center justify-center text-xs text-white font-medium" style="width: 1.33%">
+                            <span class="tooltip">Leche: 1.33%</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mt-4 text-xs font-medium text-slate-600 justify-center">
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-500 mr-2"></span>Bicicletas</div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-amber-500 mr-2"></span>Pan</div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-600 mr-2"></span>Café</div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-cyan-500 mr-2"></span>Internet</div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-rose-500 mr-2"></span>Vestuario</div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-slate-400 mr-2"></span>Leche</div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-200 mb-6">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">Bien / Servicio</th>
+                                <th class="px-6 py-4 text-right">Gasto 2008</th>
+                                <th class="px-6 py-4 text-center">Fórmula Analítica</th>
+                                <th class="px-6 py-4 text-right bg-indigo-50 text-indigo-800">Ponderador IPC (W<sub>i,0</sub>)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr class="item-row">
+                                <td class="px-6 py-3 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></span>Bicicletas</td>
+                                <td class="px-6 py-3 text-right">40.000.000</td><td class="px-6 py-3 text-center text-slate-500">40.000.000 / 82.750.000</td><td class="px-6 py-3 text-right font-bold text-indigo-700 bg-indigo-50/30">0.4834 (48.34%)</td>
+                            </tr>
+                            <tr class="item-row">
+                                <td class="px-6 py-3 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>Pan</td>
+                                <td class="px-6 py-3 text-right">21.250.000</td><td class="px-6 py-3 text-center text-slate-500">21.250.000 / 82.750.000</td><td class="px-6 py-3 text-right font-bold text-indigo-700 bg-indigo-50/30">0.2568 (25.68%)</td>
+                            </tr>
+                            <tr class="item-row">
+                                <td class="px-6 py-3 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-600 mr-2"></span>Café</td>
+                                <td class="px-6 py-3 text-right">9.600.000</td><td class="px-6 py-3 text-center text-slate-500">9.600.000 / 82.750.000</td><td class="px-6 py-3 text-right font-bold text-indigo-700 bg-indigo-50/30">0.1160 (11.60%)</td>
+                            </tr>
+                            <tr class="item-row">
+                                <td class="px-6 py-3 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-cyan-500 mr-2"></span>Internet</td>
+                                <td class="px-6 py-3 text-right">7.200.000</td><td class="px-6 py-3 text-center text-slate-500">7.200.000 / 82.750.000</td><td class="px-6 py-3 text-right font-bold text-indigo-700 bg-indigo-50/30">0.0870 (8.70%)</td>
+                            </tr>
+                            <tr class="item-row">
+                                <td class="px-6 py-3 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-rose-500 mr-2"></span>Vestuario</td>
+                                <td class="px-6 py-3 text-right">3.600.000</td><td class="px-6 py-3 text-center text-slate-500">3.600.000 / 82.750.000</td><td class="px-6 py-3 text-right font-bold text-indigo-700 bg-indigo-50/30">0.0435 (4.35%)</td>
+                            </tr>
+                            <tr class="item-row">
+                                <td class="px-6 py-3 font-medium flex items-center"><span class="w-2 h-2 rounded-full bg-slate-400 mr-2"></span>Leche (Imp.)</td>
+                                <td class="px-6 py-3 text-right">1.100.000</td><td class="px-6 py-3 text-center text-slate-500">1.100.000 / 82.750.000</td><td class="px-6 py-3 text-right font-bold text-indigo-700 bg-indigo-50/30">0.0133 (1.33%)</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-indigo-900 text-white">
+                            <tr>
+                                <th colspan="3" class="px-6 py-3 text-right text-base">Suma de Ponderadores (&sum; W)</th>
+                                <th class="px-6 py-3 text-right text-base">1.0000 (100%)</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="flex justify-between">
+                    <button onclick="openTab('gasto')" class="text-slate-500 hover:text-slate-800 transition font-sans">&larr; Anterior</button>
+                    <button onclick="openTab('comparativo')" class="bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition font-sans">Siguiente Paso &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Pestaña 4: Comparativo -->
+            <div id="comparativo" class="tab-content text-slate-700">
+                <div class="mb-6 academic-text">
+                    <p>La diferenciación principal entre la matriz del IPC y la estructura del Deflactor radica en el origen de los bienes. El componente importado altera los resultados finales al integrarse en la medición del costo de vida ciudadano, al tiempo que debe expurgarse de las Cuentas Nacionales de producción (PIB).</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="border border-blue-200 rounded-lg bg-blue-50/50 p-6">
+                        <h4 class="font-bold text-blue-900 mb-2 border-b border-blue-200 pb-2">Lógica del IPC</h4>
+                        <p class="text-sm text-blue-800">Considera la suma de los ponderadores presentados en la sección anterior, multiplicados por el relativo de precios de cada año evaluado. La leche se mantiene en la matriz analítica.</p>
+                    </div>
+                    <div class="border border-emerald-200 rounded-lg bg-emerald-50/50 p-6">
+                        <h4 class="font-bold text-emerald-900 mb-2 border-b border-emerald-200 pb-2">Lógica del Deflactor</h4>
+                        <p class="text-sm text-emerald-800">El PIB Nominal y Real se calculan año a año <strong>omitiendo por completo la columna de la leche</strong>. El coeficiente resultante no incorpora variaciones de precios originadas en ContaLandia.</p>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+                    <table class="w-full text-sm text-left bg-white">
+                        <thead class="bg-slate-800 text-slate-100 uppercase font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">Componente</th>
+                                <th class="px-6 py-4">Clasificación Origen</th>
+                                <th class="px-6 py-4 text-center border-l border-slate-600">Tratamiento IPC</th>
+                                <th class="px-6 py-4 text-center border-l border-slate-600">Tratamiento Deflactor PIB</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-6 py-4 font-medium">Bienes Nacionales (Pan, Café, Vestuario, Internet, Bicicletas)</td>
+                                <td class="px-6 py-4 text-slate-500">Producción Interna</td>
+                                <td class="px-6 py-4 text-center border-l border-slate-200 text-blue-600 font-medium">Inclusión Íntegra</td>
+                                <td class="px-6 py-4 text-center border-l border-slate-200 text-emerald-600 font-medium">Inclusión Íntegra</td>
+                            </tr>
+                            <tr class="bg-red-50 hover:bg-red-100 transition border-t-2 border-red-200">
+                                <td class="px-6 py-4 font-bold text-red-900">Leche</td>
+                                <td class="px-6 py-4 text-red-700 font-medium">Importación (ContaLandia)</td>
+                                <td class="px-6 py-4 text-center border-l border-red-200 text-blue-800 font-bold">Inclusión en Canasta</td>
+                                <td class="px-6 py-4 text-center border-l border-red-200 text-red-700 font-bold">Exclusión Metodológica</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-8 flex justify-start">
+                    <button onclick="openTab('ponderadores')" class="text-slate-500 hover:text-slate-800 transition font-sans">&larr; Volver a Ponderadores</button>
+                </div>
+            </div>
+
+            <!-- Pestaña 5: Resolución -->
+            <div id="resolucion" class="tab-content text-slate-700">
+                <div class="mb-6 academic-text">
+                    <p>En la presente sección se exponen los resultados empíricos derivados de la aplicación estricta de las directrices metodológicas previamente enunciadas. Las estimaciones correspondientes al período 2008-2018 evidencian las discrepancias en las trayectorias inflacionarias según el indicador seleccionado. La divergencia observable entre la métrica del Índice de Precios al Consumidor y el Deflactor del Producto Interno Bruto corrobora matemáticamente que la inclusión de bienes de origen internacional altera la cuantificación del nivel general de precios experimentado por los agentes económicos locales.</p>
+                </div>
+
+                <!-- Controles de Interactividad -->
+                <div class="flex justify-center mb-6 space-x-4">
+                    <button onclick="switchView('tabla')" id="btn-view-tabla" class="px-6 py-2 rounded-full font-medium transition-colors bg-blue-600 text-white shadow-md hover:bg-blue-700">Visión Tabular</button>
+                    <button onclick="switchView('grafico')" id="btn-view-grafico" class="px-6 py-2 rounded-full font-medium transition-colors bg-slate-200 text-slate-700 shadow-sm hover:bg-slate-300">Visión Gráfica</button>
+                </div>
+
+                <!-- Contenedor de Tabla -->
+                <div id="view-tabla" class="overflow-x-auto rounded-lg border border-slate-200 shadow-sm transition-opacity duration-500">
+                    <table class="w-full text-sm text-center bg-white whitespace-nowrap">
+                        <thead class="bg-slate-800 text-slate-100 font-semibold text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="px-4 py-4" rowspan="2">Año</th>
+                                <th class="px-4 py-2 border-l border-slate-600 border-b border-slate-600" colspan="2">Cuentas Nacionales (Sin Leche)</th>
+                                <th class="px-4 py-2 border-l border-slate-600 border-b border-slate-600" colspan="2">Deflactor PIB</th>
+                                <th class="px-4 py-2 border-l border-slate-600 border-b border-slate-600" colspan="2">IPC (Con Leche)</th>
+                            </tr>
+                            <tr>
+                                <th class="px-4 py-2 border-l border-slate-600">PIB Nominal</th>
+                                <th class="px-4 py-2">PIB Real</th>
+                                <th class="px-4 py-2 border-l border-slate-600 text-emerald-300">Índice Base 100</th>
+                                <th class="px-4 py-2 text-emerald-300">Inflación (%)</th>
+                                <th class="px-4 py-2 border-l border-slate-600 text-blue-300">Índice Base 100</th>
+                                <th class="px-4 py-2 text-blue-300">Inflación (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-resultados" class="divide-y divide-slate-200">
+                            <!-- Inyectado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Contenedor de Gráfico -->
+                <div id="view-grafico" class="hidden bg-white p-6 rounded-lg border border-slate-200 shadow-sm transition-opacity duration-500">
+                    <canvas id="inflacionChart" width="400" height="180"></canvas>
+                    <p class="text-xs text-center text-slate-500 mt-4 academic-text">Evolución comparativa de los índices de precios (Base 2008 = 100). La brecha ilustra el efecto de los precios internacionales sobre el costo de vida local.</p>
+                </div>
+                
+                <div class="mt-8 flex justify-start">
+                    <button onclick="openTab('comparativo')" class="text-slate-500 hover:text-slate-800 transition font-sans">&larr; Volver al Comparativo</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function openTab(tabId) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Reiniciar estilos de botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex-1 py-4 px-6 text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors";
+            });
+
+            // Mostrar contenido seleccionado
+            document.getElementById(tabId).classList.add('active');
+            
+            // Resaltar botón activo
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = "tab-btn flex-1 py-4 px-6 text-sm font-medium text-blue-600 border-b-2 border-blue-600 bg-white focus:outline-none transition-colors";
+        }
+
+        function switchView(viewMode) {
+            const viewTabla = document.getElementById('view-tabla');
+            const viewGrafico = document.getElementById('view-grafico');
+            const btnTabla = document.getElementById('btn-view-tabla');
+            const btnGrafico = document.getElementById('btn-view-grafico');
+
+            if (viewMode === 'tabla') {
+                viewTabla.classList.remove('hidden');
+                viewGrafico.classList.add('hidden');
+                btnTabla.className = "px-6 py-2 rounded-full font-medium transition-colors bg-blue-600 text-white shadow-md hover:bg-blue-700";
+                btnGrafico.className = "px-6 py-2 rounded-full font-medium transition-colors bg-slate-200 text-slate-700 shadow-sm hover:bg-slate-300";
+            } else {
+                viewTabla.classList.add('hidden');
+                viewGrafico.classList.remove('hidden');
+                btnGrafico.className = "px-6 py-2 rounded-full font-medium transition-colors bg-blue-600 text-white shadow-md hover:bg-blue-700";
+                btnTabla.className = "px-6 py-2 rounded-full font-medium transition-colors bg-slate-200 text-slate-700 shadow-sm hover:bg-slate-300";
+            }
+        }
+
+        let chartInstance = null;
+
+        function calcularResultados() {
+            const data = [
+                { year: 2008, p_pan: 850, q_pan: 25000, p_cafe: 8000, q_cafe: 1200, p_vest: 6000, q_vest: 600, p_int: 12000, q_int: 600, p_bici: 80000, q_bici: 500, p_leche: 550, q_leche: 2000 },
+                { year: 2009, p_pan: 900, q_pan: 28000, p_cafe: 8500, q_cafe: 1150, p_vest: 7000, q_vest: 700, p_int: 12500, q_int: 650, p_bici: 85000, q_bici: 600, p_leche: 650, q_leche: 3000 },
+                { year: 2010, p_pan: 920, q_pan: 30000, p_cafe: 8400, q_cafe: 1250, p_vest: 8000, q_vest: 750, p_int: 13500, q_int: 750, p_bici: 75000, q_bici: 650, p_leche: 750, q_leche: 3500 },
+                { year: 2011, p_pan: 980, q_pan: 31000, p_cafe: 7500, q_cafe: 1300, p_vest: 10000, q_vest: 800, p_int: 14500, q_int: 850, p_bici: 90000, q_bici: 600, p_leche: 750, q_leche: 3600 },
+                { year: 2012, p_pan: 1000, q_pan: 32000, p_cafe: 7550, q_cafe: 1000, p_vest: 12000, q_vest: 900, p_int: 15000, q_int: 950, p_bici: 90500, q_bici: 700, p_leche: 750, q_leche: 3500 },
+                { year: 2013, p_pan: 1100, q_pan: 30000, p_cafe: 8500, q_cafe: 900, p_vest: 12500, q_vest: 1200, p_int: 15000, q_int: 1000, p_bici: 100000, q_bici: 750, p_leche: 800, q_leche: 3500 },
+                { year: 2014, p_pan: 1050, q_pan: 28000, p_cafe: 8600, q_cafe: 1200, p_vest: 11000, q_vest: 1300, p_int: 16000, q_int: 1100, p_bici: 100000, q_bici: 800, p_leche: 660, q_leche: 3400 },
+                { year: 2015, p_pan: 1120, q_pan: 26000, p_cafe: 8700, q_cafe: 800, p_vest: 13500, q_vest: 1150, p_int: 20000, q_int: 1200, p_bici: 110000, q_bici: 600, p_leche: 650, q_leche: 6000 },
+                { year: 2016, p_pan: 1300, q_pan: 32000, p_cafe: 8850, q_cafe: 1550, p_vest: 14000, q_vest: 1400, p_int: 21500, q_int: 1500, p_bici: 115000, q_bici: 650, p_leche: 600, q_leche: 6500 },
+                { year: 2017, p_pan: 1400, q_pan: 33000, p_cafe: 9550, q_cafe: 1600, p_vest: 15500, q_vest: 1200, p_int: 24500, q_int: 1800, p_bici: 115000, q_bici: 700, p_leche: 650, q_leche: 7000 },
+                { year: 2018, p_pan: 1500, q_pan: 34000, p_cafe: 9000, q_cafe: 1700, p_vest: 15300, q_vest: 1550, p_int: 25900, q_int: 2000, p_bici: 120000, q_bici: 800, p_leche: 700, q_leche: 8000 }
+            ];
+
+            const p0 = data[0];
+            const w = {
+                pan: (p0.p_pan * p0.q_pan) / 82750000,
+                cafe: (p0.p_cafe * p0.q_cafe) / 82750000,
+                vest: (p0.p_vest * p0.q_vest) / 82750000,
+                int: (p0.p_int * p0.q_int) / 82750000,
+                bici: (p0.p_bici * p0.q_bici) / 82750000,
+                leche: (p0.p_leche * p0.q_leche) / 82750000
+            };
+
+            const tbody = document.getElementById('tabla-resultados');
+            let lastDef = null;
+            let lastIpc = null;
+            
+            // Arrays para la visualización gráfica
+            const labels = [];
+            const dataDeflactor = [];
+            const dataIPC = [];
+
+            data.forEach(d => {
+                const pibNom = (d.p_pan * d.q_pan) + (d.p_cafe * d.q_cafe) + (d.p_vest * d.q_vest) + (d.p_int * d.q_int) + (d.p_bici * d.q_bici);
+                const pibReal = (p0.p_pan * d.q_pan) + (p0.p_cafe * d.q_cafe) + (p0.p_vest * d.q_vest) + (p0.p_int * d.q_int) + (p0.p_bici * d.q_bici);
+                
+                const deflactor = (pibNom / pibReal) * 100;
+                const infDef = lastDef !== null ? ((deflactor / lastDef) - 1) * 100 : 0;
+                
+                const ipc = (
+                    w.pan * (d.p_pan / p0.p_pan) +
+                    w.cafe * (d.p_cafe / p0.p_cafe) +
+                    w.vest * (d.p_vest / p0.p_vest) +
+                    w.int * (d.p_int / p0.p_int) +
+                    w.bici * (d.p_bici / p0.p_bici) +
+                    w.leche * (d.p_leche / p0.p_leche)
+                ) * 100;
+                const infIpc = lastIpc !== null ? ((ipc / lastIpc) - 1) * 100 : 0;
+
+                // Captura de datos para Chart.js
+                labels.push(d.year);
+                dataDeflactor.push(deflactor.toFixed(2));
+                dataIPC.push(ipc.toFixed(2));
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium border-b border-slate-200">${d.year}</td>
+                    <td class="px-4 py-3 border-l border-b border-slate-200 text-slate-600">$${pibNom.toLocaleString('es-CL')}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-slate-600">$${pibReal.toLocaleString('es-CL')}</td>
+                    <td class="px-4 py-3 border-l border-b border-slate-200 font-bold text-emerald-700">${deflactor.toFixed(2)}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-emerald-600">${lastDef === null ? 'N/A' : infDef.toFixed(2) + '%'}</td>
+                    <td class="px-4 py-3 border-l border-b border-slate-200 font-bold text-blue-700">${ipc.toFixed(2)}</td>
+                    <td class="px-4 py-3 border-b border-slate-200 text-blue-600">${lastIpc === null ? 'N/A' : infIpc.toFixed(2) + '%'}</td>
+                `;
+                tbody.appendChild(tr);
+
+                lastDef = deflactor;
+                lastIpc = ipc;
+            });
+
+            renderChart(labels, dataIPC, dataDeflactor);
+        }
+
+        function renderChart(labels, dataIPC, dataDeflactor) {
+            const ctx = document.getElementById('inflacionChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Índice de Precios al Consumidor (IPC)',
+                            data: dataIPC,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: '#1d4ed8',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Deflactor del PIB',
+                            data: dataDeflactor,
+                            borderColor: '#059669',
+                            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: '#047857',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                            titleFont: { family: "'Outfit', sans-serif", size: 14 },
+                            bodyFont: { family: "'Outfit', sans-serif", size: 13 },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' (Base 100)';
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: "'Outfit', sans-serif",
+                                    size: 13
+                                },
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Nivel del Índice (Base 2008 = 100)',
+                                font: {
+                                    family: "'Outfit', sans-serif",
+                                    weight: '500',
+                                    size: 13
+                                }
+                            },
+                            grid: {
+                                color: '#f1f5f9'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: "'Outfit', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.onload = calcularResultados;
+    </script>
+</body>
+</html>
